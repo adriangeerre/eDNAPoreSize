@@ -1,0 +1,351 @@
+### GenomeDK
+
+Tras acceder a GenomeDK he descargado 3 grupos de archivos:
+
+    1. Raw reads
+    2. Paired reads
+    3. Blast raw output
+
+Una vez descargados los datos de Blast quiero:
+
+    1. Reducir el número de hits con Basta.
+    2. Normalizar (TMM o RLE) por taxonomía (linea entera). - Rarefy! (Mads)
+    3. Comparar con X² los filtros para determinar que los más pequeños captan menos Eukaryota.
+    4. Realizar una descripción de lo encontrado.
+
+# BASTA
+
+Github: 'https://github.com/timkahlke/BASTA'
+
+    conda create -n BASTA python=2.7
+    conda activate BASTA
+    conda install -c bioconda -c bnoon -c timkahlke basta
+
+Transfiero los archivos de anotación desde mi ordenador personal al del CBM mediante Smash. Comprimo las carpetas y subo todos los archivos. Descargo y ubico los archivos en '/home/genomica/.basta/taxonomy'. Paso a testear el software:
+
+    conda activate BASTA
+    cd /datos/GenomeDK/blast
+    cp A0_2_UKDSW01264_HF7V2DSXX_L3.merged/A0_2_UKDSW01264_HF7V2DSXX_L3.merged_0000.csv .
+    mv A0_2_UKDSW01264_HF7V2DSXX_L3.merged_0000.csv test.csv
+    cut -d ',' -f 1-12 test.csv | sed 's/,/\t/g' > test.tsv
+    basta sequence -i 95 -m 2 test.tsv basta_test.tsv gb
+
+El software funciona, paso a preparar los archivos en formato 12 columnas y tabular.
+
+    cd /datos/GenomeDK/
+    mkdir tabBlast
+    for folder in $(ls ../blast); do mkdir ${folder}; done
+    cd ../blast
+    for folder in $(ls); do echo ${folder}; cd ${folder}; for file in $(ls | sed 's/.csv//g'); do cut -d ',' -f 1-12 ${file}.csv | sed 's/,/\t/g' > ../../tabBlast/${folder}/${file}.tsv; done; cd ../; done
+
+A continuación, ejecuto BASTA en cada archivo individual pues ninguna categorización se divide en multiples archivos.
+
+    conda activate BASTA
+    mkdir -p /datos/GenomeDK/Basta
+    cd /datos/GenomeDK/Basta
+    for folder in $(ls ../blast); do mkdir ${folder}; done
+    cd ../tabBlast
+    for folder in $(ls); do echo ${folder}; cd ${folder}; for file in $(ls | sed 's/.tsv//g'); do basta sequence -i 95 -m 2 ${file}.tsv ../../Basta/${folder}/${file}.basta.tsv gb ; done; cd ../; done
+
+A continuación, agrupo todos los resultados en un único archivo y realizo el contaje por taxonomía. Es decir, agrupo todas las taxonomías que son iguales pues tendrían el mismo taxid. No obstante, sería mejor hacerlo por genes/accession donde podría incluir la longitud del hit. No obstante, no he podido obtener dicha información.
+
+    for folder in $(ls); do echo ${folder}; cat ${folder}/* > ${folder}/$(echo ${folder} | cut -d '_' -f 1,2).basta.output; done
+    for i in $(ls); do echo ${i}; cat ${i}/$(echo ${i} | cut -d '_' -f 1,2).basta.output | wc -l; done
+    for i in $(ls); do echo ${i}; cat ${i}/$(echo ${i} | cut -d '_' -f 1,2).basta.output | awk '{if ($2 != "Unknown") {print $0}}' | wc -l; done
+    
+
+Resultados:
+
+    '/home/agomez/eDNA/faststorage/Adrian/Tesis/results/mrca_complete'
+    '/home/agomez/eDNA/faststorage/Adrian/Tesis/results/mrca'
+    for i in $(ls | grep -e 0_2 -e 1_2 -e 5_0 -e 8_0); do echo ${i}; wc -l ${i}/${i}_complete_mrca.csv; done
+
+    Muestra     Nº lecturas     Nº lecturas (!= Unknown)    |   Nº lecturas (MRCA) Complete/Eukaryota
+    A02         452.769         128.269                     |   427.609 / 88.955
+    B02         403.153         118.825                     |   379.643 / 84.133
+    C02         485.084         175.635                     |   456.532 / 96.610
+    A12         422.122         185.185                     |   370.455 / 206.538
+    B12         447.572         208.342                     |   386.650 / 255.841
+    C12         999.673         572.719                     |   868.153 / 272.558
+    A50         137.743          80.308                     |   102.419 / 62.677
+    B50         152.423          86.080                     |   121.265 / 79.164
+    C50         366.114         229.057                     |   313.655 / 96.409
+    A80         247.583         143.251                     |   194.467 / 121.005
+    B80         238.613         132.937                     |   186.395 / 139.515
+    C80         420.648         260.890                     |   368.078 / 125.902
+
+Visto los resultados de Basta, prefiero utilizar el MRCA pues produce mayor cantidad de reads. Quizás se deba a todos los filtros previos que no han sido aplicados a BASTA.
+
+#####
+Parece que Blast produce el output ordenador por Bitscore y que algunas personas utilizan la primera línea para definir el mejor hit. Otras, ordenan el output para cada lectura por bitscore y e-value para obtener el mejor hit. Esto me permitiría obtener el accession/gen y su longitud para normalizar.
+
+    cd /datos/GenomeDK/blast/
+    for folder in $(ls | grep -v A0_2); do cd $folder; for file in $(ls | cut -d '.' -f 1,2); do echo $file; cat $file.csv | cut -d ',' -f 1-14,17-18 | sed 's/,/\t/g' | sort -k1,1 -k12,12nr -k11,11n | sort -u -k1,1 --merge > ../../blast_1st/${folder}/${file}_1st.tsv; done; cd ..; done
+    
+    cd /datos/GenomeDK/blast_1st/
+    for folder in $(ls); do echo ${folder}; cd ${folder}; cat * > $(echo ${folder} | cut -d '_' -f 1,2).tsv; cd ..; done
+    
+    mkdir /datos/GenomeDK/blast_1st_merged/
+    cd /datos/GenomeDK/blast_1st_merged/
+    mv ../blast_1st/*/*0_2.tsv .
+    mv ../blast_1st/*/*1_2.tsv .
+    mv ../blast_1st/*/*5_0.tsv .
+    mv ../blast_1st/*/*8_0.tsv .
+
+V13 y V14 hacen referencia a slen y qlen.
+
+About the output:
+
+The ouput contains the following format:
+
+    -outfmt "10 std qlen qseq qcovs staxids ssciname"
+
+10 means that the output is divided by commas.
+    13. slen = subject lenth
+    14. qlen = query length
+    15. sseq = Aligned part of subject sequence
+    16. qseq = Aligned part of query sequence
+    17. qcovs = Query Coverage Per Subject (for all HSPs)
+    18. staxids = unique Subject Taxonomy ID(s)
+    19. ssciname = unique Subject Scientific Name(s)
+Then:
+std = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore'
+
+    1.  qseqid = Query Seq-id
+    2.  sseqid = Subject Seq-id
+    3.  pident = Percentage of identical matches
+    4.  length = Alignment length
+    5.  mismatch = Number of mismatches
+    6.  gapopen = Number of gap openings
+    7.  qstart = Start of alignment in query
+    8.  qend = End of alignment in query
+    9.  sstart = Start of alignment in subject
+    10. send = End of alignment in subject
+    11. evalue = Expect value
+    12. bitscore = Bit score
+
+
+# Normalización
+
+Lo primero es agrupar cada muestra, obteniendo en las filas las especies, en las columnas las muestras y en las celdas el count.
+
+    conda activate Bioconductor
+    cd /datos/GenomeDK/MRCA
+    mv */*.csv .
+    rmdir *.merged
+    rstudio
+    
+# Obtener los taxids
+  
+    cd blast_1st/
+    for folder in $(ls); do echo ${folder}; cd ${folder}; for file in $(ls); do cat ${file} | cut -f 2,16 | sort | uniq >> $(echo ${file} | cut -d '_' -f 1,2).acc2tax.tsv; done; cd ..; done
+    cat */*.acc2tax.tsv | sort | uniq > acc2tax.tsv
+    rm */*.acc2tax.tsv
+
+Hay un total de 697.467 secuencias de las cuales 1503 son taxids multiples. Para poder recuperar dichas secuencias, lo mejor sería generar un árbol entre los taxids y obtener el MRCA de estos.
+
+    conda activate TaxizeDB
+    cat acc2tax.tsv | grep ";" | cut -f 2 | sort | uniq > accdups.tsv
+    
+    script: accdups2mrca.R
+
+Además, hay 4 accession que no coinciden con ningún taxid (N/A): 2GYA_0, 2HGR_C, 2MS1_B y 3AN2_I. Busco en la base de datos de NCBI si existe alguna coincidencia. Sin embargo, no existen asociados a ningún organismo. Tendré que eliminar los hits.
+
+    
+
+-------------------------------------------------------------------------------------------------
+# Charla con Mads
+
+Mads me comentó que utilizar el 'accession number' como identificador para la normalización no es correcto pues la base de datos de NCBI, 'nt', genera estos identificadores para la misma secuencia de manera distinta al realizar la subida. Mads me mostró unas 12 secuencias que él subió las cuales eran las mismas, o muy similares, y estas tenian 'accession numbers' distintos. Por tanto, lo mejor es utilizar la especie o taxid para normalizar.
+
+Por otra parte, discutimos otros dos puntos: 1) La normalización se debe hacer a la baja. Es decir, reducir las secuencias dado la menor de las muestras para obtener número enteros, y 2) El bajo número de muestras hace que el paper sea descriptivo, no obstante debo comtemplar la idea de utilizar Bootstrap para repetir multiples veces el experimento.
+
+Por último, Mads quiere alinear las secuencias marcadas como Bacalao (Gadus morhua) frente a su secuencia de referencia.
+
+Librerías:
+
+    Muestra     Nº reads (raw)  Nº reads (paired)   Nº hits BLAST
+    A0_2        21.685.127      8.012.934           1.528.036
+    B0_2        28.704.520      7.353.338           1.404.524
+    C0_2        34.830.732      8.723.100           1.640.717
+    A1_2        25.143.949      12.077.121          1.529.932
+    B1_2        39.657.182      12.720.178          1.619.672
+    C1_2        37.909.720      14.856.799          2.585.994
+    A5_0        22.115.536      8.154.208           614.977
+    B5_0        20.711.068      10.252.379          776.381
+    C5_0        26.961.278      16.772.256          1.395.767
+    A8_0        24.292.091      13.580.437          1.082.800
+    B8_0        19.906.002      14.727.456          1.087.883
+    C8_0        24.650.160      19.603.712          1.585.160
+
+
+Mínimo: 7.353.338 lecturas emparejadas
+
+# Basic path
+    cd /datos/GenomeDK
+
+# Obtain data
+    mkdir /datos/GenomeDK/blast/
+    cd blast/
+    rsync -avr agomez@login.genome.au.dk:/home/agomez/eDNA/faststorage/Adrian/Tesis/results/blast/* .
+
+# Obtain BLAST output. Remove sseq, qseq y ssciname. Transform to tab-delimited file. Total: 16 columns.
+    for folder in $(ls)
+    do
+     cd $folder
+     	for file in $(ls | cut -d '.' -f 1,2)
+     	do
+     		cat $file.csv | cut -d ',' -f 1-14,17-18 | sed 's/,/\t/g' | sort -k1,1 -k12,12nr -k11,11n | sort -u -k1,1 --merge > ../../blast_1st/${folder}/${file}_1st.tsv
+	    done
+      cd ../
+    done
+    cd ../
+
+# Merge BLAST per sample
+    mkdir blast_1st_merged
+    cd /datos/GenomeDK/blast_1st/
+    for folder in $(ls)
+    do
+	    cd ${folder}; cat * > $(echo ${folder} | cut -d '_' -f 1,2).tsv; mv $(echo ${folder} | cut -d '_' -f 1,2).tsv ../../blast_1st_merged/
+	    cd ../
+    done
+    cd ../
+
+# Obtain taxids
+    cd blast_1st_merged
+    for file in $(ls)
+    do
+	    cut -f 16 ${file} | sort | uniq >> ../taxids.tmp.tsv
+    done
+    cd ../
+    cat taxids.tmp.tsv | sort | uniq > taxids.tsv
+    rm taxids.tmp.tsv
+
+# Divide taxids between single and multiple (semicolons separated)
+    grep ';' taxids.tsv > multiple.taxids.tsv
+    grep -v ';' taxids.tsv > single.taxids.tsv
+
+# Get Taxonomy
+
+Some taxids are divided into multiple taxids, I do MRCA to get a unique taxid. Then, I get the taxonomy of all the taxids found and I create a file.
+
+    Scripts:
+        mulipletTaxids2singleTaxid.R
+        taxid2taxa.R
+
+    Files:
+        m2s.taxids.tsv
+        taxid2taxonomy.tsv
+
+# Counts
+
+Count por Especie.
+
+    conda activate TaxizeDB
+    rstudio
+        Script: counts.raw.R
+    
+        Files:  raw.taxa.count.tsv
+
+
+# Instalación de ROBITools
+
+Accedo a Gitlab personal donde se ubica ROBITools y ROBITaxonomy, y descargo el '.tar.gz' de ambos. Creo un environment para instalar R y que este contenga ROBITools.
+
+    conda create -n ROBITools
+    conda install -c conda-forge r-base
+    conda install -c conda-forge r-devtools
+    conda install -c r r-igraph
+    install.packages('/home/genomica/Descargas/ROBITaxonomy-master.tar.gz', repos = NULL, type="source")
+    install.packages('/home/genomica/Descargas/ROBITools-master.tar.gz', repos = NULL, type="source")
+    conda install -c r r-tidyverse 
+
+Genero la rarefacción.
+
+    Scripts: rarefyROBI.R
+    
+    Files:
+        Pore_size_table_for_rarefy.tsv 
+        counts.rarefy.tsv
+
+# Heatmap
+
+    conda activate Bioconductor
+    conda install -c bioconda bioconductor-complexheatmap
+
+    Script: summaryTable.R
+
+    Files:
+        reads.perc.phylum.tsv
+        reads.phylum.tsv
+
+La otra opción es pheatmap.
+
+# BACALAO
+
+Número de secuencias marcadas como 'Gadus morhua' por muestra. El count utilizado proviene de seleccionar la primera línea de BLAST. En total, 171 'accession numbers' utilizados (potencialmente secuencias distintas, seguramente más).
+
+    cat counts.taxonomy.tsv | grep -e Gadus -e morhua | cut -f 1 | sort | uniq > COD.8049.acc.txt
+    conda activate TaxizeDB
+    rstudio
+
+        # Libraries
+        library(tidyverse)
+
+        # Data
+        df <- read.delim("raw.counts.tsv")
+        acc <- read.delim("COD.8049.acc.txt", header=F)
+
+        # Filter
+        keep <- rownames(df) %in% acc$V1
+        df <- df[keep,]
+
+        # Count
+        rownames(df) <- NULL
+        colSums(df)
+
+Resultados:
+
+    A0_2 B0_2 C0_2 A1_2 B1_2 C1_2 A5_0 B5_0 C5_0 A8_0 B8_0 C8_0 
+    1179 604  692  1534 2531 1671 1664 2709 2797 3459 3614 2767
+
+    0_2  1_2  5_0  8_0
+    2475 5736 7170 9840
+
+
+
+
+-------------------------------------------------------------
+@Metabarcoding
+
+Para utilizar Qiime2 necesito las lecturas R1 y R2 de las distintas muestras, así como un archivo fasta que contenga las secuencias de la base de datos y un archivo tsv que contenga la taxonomía de las secuencias.
+Para utilizar las mismas secuencias que con Shotgun, accedo al cluster de genomedk y voy a la carpeta '/home/agomez/eDNA/faststorage/blastdb/nt-old-30032020'. Una vez dentro:
+
+    mkdir seqs
+    for num in $(seq 0 9); do echo nt.0${num}; blastdbcmd -db nt.0${num} -entry all -outfmt "%f" > seqs/seqs.nt.0${num}; done
+    for num in $(seq 10 85); do echo nt.${num}; blastdbcmd -db nt.${num} -entry all -outfmt "%f" > seqs/seqs.nt.${num}; done
+
+    mkdir taxids
+    for num in $(seq 0 9); do echo nt.0${num}; blastdbcmd -db nt.0${num} -entry all -outfmt "%a %T %L" > taxids/taxids.nt.0${num}; done
+    for num in $(seq 10 85); do echo nt.${num}; blastdbcmd -db nt.${num} -entry all -outfmt "%a %T %L" > taxids/taxids.nt.${num}; done
+
+
+
+
+
+------------------------------------------------------------
+@Estructura
+
+Figure 1. Bioinformatic workflow
+Figure 2. Total eDNA pr filter type (fig.4 MSc)
+Figure 3. Stack-barplot of ID proportions pr taxonomic group (superkingdom, kingdom, phylum) (Fig.3 Project)
+Figure 4. Venn diagrams of IDs (Fig.7 MSc)
+Table 1. Overview of taxonomic id for all filters (Phylum level). 
+
+Title suggestion: “Filter pore size influence taxonomic composition of captured seawater eDNA”
+
+Data: Standardization according to median read count across filters (when only shotgun).
+
+-------------------------------------------------------------
+
+
