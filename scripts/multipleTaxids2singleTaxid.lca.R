@@ -28,9 +28,14 @@ mrcaTaxids <- function(taxids) {
 
 # Result
 r <- c()
+pb <- txtProgressBar(min = 1, max = length(df$V1), style = 3)
+count = 1
 for (taxids in df$V1) {
+  setTxtProgressBar(pb, count)
   r <- append(r, mrcaTaxids(taxids))
+  count = count + 1
 }
+close(pb)
 
 # Save results
 rdf <- df %>% mutate(mrca = r) %>% rename(taxids = V1)

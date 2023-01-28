@@ -1,0 +1,157 @@
+# Libraries
+library(tidyverse)
+library(reshape2)
+library(ComplexHeatmap)
+library(edgeR)
+
+# Samples
+s <- c('A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0','GP_1','GP_2','GP_3')
+
+## TMM
+df <- read.delim("counts.lca.rarefy.tsv")
+x <- df[,-c(1:8)]
+scale.factors <- calcNormFactors(x, lib.size=NULL, method = "TMM")
+norm.data <- t(t(x)/(scale.factors*817133))
+tmm <- cbind(df[,1:8],norm.data)
+
+y <- tmm %>% select(superkingdom,s) %>% melt() %>% drop_na()
+y$superkingdom <- factor(y$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
+y$variable <- factor(y$variable, levels = c('GP_1','GP_2','GP_3','A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0'))
+y %>% ggplot() + geom_boxplot(aes(x=variable,y=value, color=superkingdom)) + scale_color_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) + facet_wrap(~superkingdom) + theme_classic() %+replace% theme(axis.text.x = element_text(angle = 90))
+
+# Phylum
+dfeu <- df %>% filter(superkingdom == "Eukaryota")
+ph <- dfeu %>% group_by(phylum) %>% drop_na("phylum") %>% select(s) %>% melt() %>% ungroup() %>% group_by(phylum, variable) %>% summarise(value = sum(value)) %>% spread(phylum, value) %>% rename(sample = variable) %>% as.data.frame()
+rownames(ph) <- ph$sample
+ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(A0_2))
+write.table(ph, file='reads.lca.phylum.tsv', quote=FALSE, sep='\t', col.names=T ,row.names=F)
+
+phperc <- apply(ph,2,function(x){round(x/sum(x)*100,2)})
+write.table(phperc, file='reads.lca.perc.phylum.tsv', quote=FALSE, sep='\t', col.names=T ,row.names=F)
+
+# Sort
+labels <- (df[,c(1,2,3)] %>% filter(superkingdom == "Eukaryota") %>% unique() %>% select(kingdom, phylum))
+labels <- merge(labels, rownames(ph), by.x="phylum", by.y="y") %>% arrange(kingdom)
+labels$kingdom[is.na(labels$kingdom)] <- "Undefined"
+
+# Color
+lab <- colorRampPalette(c("lightblue","lightyellow","orange","red","darkred"),  space = "Lab")
+
+# Scale Rows
+scale_heatmap_row <- function(x) {
+  x <- sweep(x, 1L, rowMeans(x, na.rm = F), check.margin = FALSE)
+  sx <- apply(x, 1L, sd, na.rm = F)
+  x <- sweep(x, 1L, sx, "/", check.margin = FALSE)
+  return(x)
+}
+scale_heatmap_column <- function(x) {
+  x <- sweep(x, 2L, colMeans(x, na.rm = F), check.margin = FALSE)
+  sx <- apply(x, 2L, sd, na.rm = F)
+  x <- sweep(x, 2L, sx, "/", check.margin = FALSE)
+  return(x)
+}
+
+phs <- scale_heatmap_row(ph)
+phs <- phs[labels$phylum,]
+
+# Reorder GPs
+phs <- phs[,c(13:15,1:12)]
+
+# Heatmap
+annot <- rowAnnotation(Kingdom = labels$kingdom, show_annotation_name = F, col = list(Kingdom = c("Fungi"="coral3", "Metazoa"="darkcyan", "Viridiplantae"="darkolivegreen3", "Undefined"="rosybrown3")), border = T)
+Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$kingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 10), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)))
+
+
+# NON-EUKARYOTA
+
+ph <- df %>% group_by(phylum) %>% drop_na("phylum") %>% select(s) %>% melt() %>% ungroup() %>% group_by(phylum, variable) %>% summarise(value = sum(value)) %>% spread(phylum, value) %>% rename(sample = variable) %>% as.data.frame()
+rownames(ph) <- ph$sample
+ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(A0_2))
+
+labels <- (df[,c(1,2,3)] %>% unique() %>% select(superkingdom, phylum))
+labels <- merge(labels, rownames(ph), by.x="phylum", by.y="y") %>% arrange(superkingdom)
+
+phs <- scale_heatmap_row(ph)
+phs <- phs[labels$phylum,]
+phs <- phs[,c(13:15,1:12)]
+
+annot <- rowAnnotation(Superkingdom = labels$superkingdom, show_annotation_name = F, col = list(Superkingdom = c("Archaea"="coral3", "Bacteria"="darkcyan", "Eukaryota"="orange3", "Viruses"="darkolivegreen3")), border = T)
+p <- Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$superkingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 4), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)))
+
+# -----------------------------
+### Summary tables
+
+# Top5 Bacteria
+bac <- labels %>% filter(superkingdom == "Bacteria")
+ph_bac <- ph[bac$phylum,]
+ph_bac %>% arrange(desc(A0_2)) %>% head(5)
+
+## Number of unique taxa per taxonomic level and pore size
+df$p02 <- rowSums(df[,c(9:11)])
+df$p12 <- rowSums(df[,c(12:14)])
+df$p50 <- rowSums(df[,c(15:17)])
+df$p80 <- rowSums(df[,c(18:20)])
+df$pGP <- rowSums(df[,c(21:23)])
+
+numTaxa <- function(df, taxlevel, col) {
+  for (domain in c("Archaea","Bacteria","Eukaryota","Viruses")) {
+    tmp <- (df %>% filter(superkingdom == sym(domain)) %>% select(taxlevel,col) %>% group_by(UQ(sym(taxlevel))) %>% summarise(tmp = sum(UQ(sym(col)))) %>% drop_na() %>% filter(tmp > 0) %>% dim())[1]
+    message(paste(domain, taxlevel, col, ":", tmp))
+  }
+}
+
+# Phylum
+numTaxa(df, "phylum", "pGP")
+numTaxa(df, "phylum", "p02")
+numTaxa(df, "phylum", "p12")
+numTaxa(df, "phylum", "p50")
+numTaxa(df, "phylum", "p80")
+
+# Class
+numTaxa(df, "class", "pGP")
+numTaxa(df, "class", "p02")
+numTaxa(df, "class", "p12")
+numTaxa(df, "class", "p50")
+numTaxa(df, "class", "p80")
+
+# Order
+numTaxa(df, "order", "pGP")
+numTaxa(df, "order", "p02")
+numTaxa(df, "order", "p12")
+numTaxa(df, "order", "p50")
+numTaxa(df, "order", "p80")
+
+# Family
+numTaxa(df, "family", "pGP")
+numTaxa(df, "family", "p02")
+numTaxa(df, "family", "p12")
+numTaxa(df, "family", "p50")
+numTaxa(df, "family", "p80")
+
+# Genus
+numTaxa(df, "genus", "pGP")
+numTaxa(df, "genus", "p02")
+numTaxa(df, "genus", "p12")
+numTaxa(df, "genus", "p50")
+numTaxa(df, "genus", "p80")
+
+# Species
+numTaxa(df, "species", "pGP")
+numTaxa(df, "species", "p02")
+numTaxa(df, "species", "p12")
+numTaxa(df, "species", "p50")
+numTaxa(df, "species", "p80")
+
+## Top5 phyla per pore size
+
+df2 <- df[,c(1,3,9:23)]
+
+df3 <- df2 %>% filter(superkingdom == "Eukaryota") %>% select(-superkingdom) %>% group_by(phylum) %>% summarise_at(s, sum) %>% drop_na(phylum) %>% arrange(desc(A0_2))
+
+# 0.2
+df3 %>% select(phylum,s[1:3]) %>% head(5)
+
+# Plot
+df3_plot <- df3 %>% melt()
+df3_plot$variable <- factor(df3_plot$variable, levels = c('GP_1','GP_2','GP_3','A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0'))
+df3_plot %>% ggplot() + geom_point(aes(x=variable, y=log(value), color=phylum)) + facet_wrap(~phylum) + guides(color = "none") + theme_classic() %+replace% theme(axis.text.x = element_text(angle = 90))
