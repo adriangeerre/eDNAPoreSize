@@ -6,7 +6,7 @@ library(tidyverse)
 df <- read.delim("multiple.taxids.tsv",header=F)
 
 # Function
-mrcaTaxids <- function(taxids) {
+lcaTaxids <- function(taxids) {
   taxs <- strsplit(taxids, split=";", fixed=T)[[1]]
   d <- data.frame(matrix(ncol = 3, nrow = 0))
   colnames(d) <- c("name", "rank", "id")
@@ -32,7 +32,7 @@ pb <- txtProgressBar(min = 1, max = length(df$V1), style = 3)
 count = 1
 for (taxids in df$V1) {
   setTxtProgressBar(pb, count)
-  r <- append(r, mrcaTaxids(taxids))
+  r <- append(r, lcaTaxids(taxids))
   count = count + 1
 }
 close(pb)

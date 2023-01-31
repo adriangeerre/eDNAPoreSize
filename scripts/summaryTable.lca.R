@@ -7,17 +7,19 @@ library(edgeR)
 # Samples
 s <- c('A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0','GP_1','GP_2','GP_3')
 
-## TMM
+# Data
 df <- read.delim("counts.lca.rarefy.tsv")
-x <- df[,-c(1:8)]
-scale.factors <- calcNormFactors(x, lib.size=NULL, method = "TMM")
-norm.data <- t(t(x)/(scale.factors*817133))
-tmm <- cbind(df[,1:8],norm.data)
 
-y <- tmm %>% select(superkingdom,s) %>% melt() %>% drop_na()
-y$superkingdom <- factor(y$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
-y$variable <- factor(y$variable, levels = c('GP_1','GP_2','GP_3','A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0'))
-y %>% ggplot() + geom_boxplot(aes(x=variable,y=value, color=superkingdom)) + scale_color_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) + facet_wrap(~superkingdom) + theme_classic() %+replace% theme(axis.text.x = element_text(angle = 90))
+## TMM
+# x <- df[,-c(1:8)]
+# scale.factors <- calcNormFactors(x, lib.size=NULL, method = "TMM")
+# norm.data <- t(t(x)/(scale.factors*817133))
+# tmm <- cbind(df[,1:8],norm.data)
+
+# y <- tmm %>% select(superkingdom,s) %>% melt() %>% drop_na()
+# y$superkingdom <- factor(y$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
+# y$variable <- factor(y$variable, levels = c('GP_1','GP_2','GP_3','A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0'))
+# y %>% ggplot() + geom_boxplot(aes(x=variable,y=value, color=superkingdom)) + scale_color_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) + facet_wrap(~superkingdom) + theme_classic() %+replace% theme(axis.text.x = element_text(angle = 90))
 
 # Phylum
 dfeu <- df %>% filter(superkingdom == "Eukaryota")

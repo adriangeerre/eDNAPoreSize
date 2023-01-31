@@ -12,7 +12,7 @@ names(f) <- l
 taxonomy <- read.delim("taxid2taxonomy.tsv") %>% unique()
 
 taxid2taxa <- function(df, taxonomy) {
-  df <- merge(df, taxonomy, by.x="X18", by.y="taxid")
+  df <- merge(df, taxonomy, by.x="X20", by.y="taxid")
   df <- df[,c(2:16,1,18:25,17)]
   return(df)
 }
