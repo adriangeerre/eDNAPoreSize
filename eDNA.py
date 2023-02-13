@@ -79,7 +79,9 @@ def blast_file(fainput, in_route, out_route, dbs, blastdb, folderdb, evalue, tar
     echo "Copying database $(date)"
     rsync -avr --exclude '*.tar.gz' --exclude '*.md5' --exclude 'seqs' {blastdb} /scratch/$SLURM_JOBID/
     echo "Database copied $(date)"
-    blastn -query {in_route}/{fainput}.fasta -db /scratch/$SLURM_JOBID/{folderdb}/{dbs} -outfmt "6 std slen qlen sseq qseq qcovs qcovhsp qcovus staxid" -num_threads {threads} -evalue {evalue} -max_target_seqs {target_seqs} -out {out_route}/{fainput}.tsv
+    blastn -query {in_route}/{fainput}.fasta -db /scratch/$SLURM_JOBID/{folderdb}/{dbs} -outfmt "6 std slen qlen sseq qseq qcovs qcovhsp qcovus staxid" -num_threads {threads} -evalue {evalue} -max_target_seqs {target_seqs} -out {out_route}/{fainput}.tmp.tsv
+    # Avoid gwf finish if time limit happens
+    mv {out_route}/{fainput}.tmp.tsv {out_route}/{fainput}.tsv
     '''.format(out_route=out_route, in_route=in_route, fainput=fainput, dbs=dbs, blastdb=blastdb, folderdb=folderdb, evalue=evalue, threads=threads, target_seqs=target_seqs)
 
     return AnonymousTarget(inputs=inputs, outputs=outputs, options=options, spec=spec)
