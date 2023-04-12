@@ -1,21 +1,23 @@
 # Libraries
-library(taxizedb)
-library(tidyverse)
-library(plyr)
+suppressMessages(library(taxizedb))
+suppressMessages(library(tidyverse))
+suppressMessages(library(plyr))
 
 # Data
-single <- read.delim("single.taxids.tsv",header=F)
-m2s <- read.delim("m2s.taxids.tsv",header=T)
+taxa <- read.delim("taxids.tsv",header=F)
 
 # Group
-ids <- c(single$V1,m2s$mrca)
+ids <- taxa$V1
 
-# Taxonomy
+# Colnames
 tc <- c("taxid","superkingdom","kingdom","phylum","class","order","family","genus","species")
+
+# Taxonomy identification
 t <- classification(ids)
-table(is.na(t))
 t <- t[!is.na(t)]
-t <- lapply(t, function(x) x %>% mutate(taxid = x$id[nrow(x)]) %>% filter(rank %in% tc) %>% select(-id) %>% unique() %>% spread(rank,name))
+t <- lapply(t, function(x) x %>% mutate(taxid = x$id[nrow(x)]) %>% filter(rank %in% tc) %>% group_by(rank) %>% filter(id == min(as.numeric(id))) %>% ungroup() %>% select(-id) %>% unique() %>% spread(rank,name))
+
+# Merge classifications
 vals <- data.frame(taxid=NA, class=NA, family=NA, genus=NA, kingdom=NA, order=NA, phylum=NA, species=NA, superkingdom=NA)
 tf <- lapply(t, function(x) rbind.fill(x, vals)[1,]) # Faster than Reduce!
 tf <- lapply(tf, function(x) x %>% select(all_of(tc))) # Sort to mix

@@ -57,7 +57,7 @@ def fastq2fasta(fqinput, faoutput, memory):
 # Split the file
 def split_file(prefix, num, in_route, out_route):
     inputs = [f'{in_route}/{prefix}.fasta']
-    outputs = [f'{out_route}/{prefix}_{n:04}.tsv' for n in range(num)]
+    outputs = [f'{out_route}/{prefix}_{n:04}.fasta' for n in range(num)]
     options = {'cores': 1,'memory': '4g', 'queue': 'short', 'walltime': '00:30:00'}
 
     spec = '''
@@ -176,6 +176,14 @@ for sample in f:
     # Manuscript: Explain in detail the Rarefactian (Median)
     #####
 
+    # Summarise Blast
+    gwf.target(f'Summarise_Blast_{name}',
+    inputs=[f"03-Blast/{name}/{name}_{num:04}.tsv" for num in range(num_files)], outputs=[f"07-Other/{name}.mean_pident_length_qcovs.per_read.tsv"], cores=1, memory='2g', walltime='2:00:00') << """
+    mkdir -p 07-Other
+    # Pident vs Length vs Qcovs (Per Read)
+    Rscript scripts/summary.blast.R -s {name}
+    """.format(name=name)
+
     # Create Folder
     if not os.path.isdir(f"04-FilterBlast/{name}") and os.path.isdir(f"03-Blast/{name}"): os.makedirs(f"04-FilterBlast/{name}")
     if not os.path.isdir("05-MergeBlast") and os.path.isdir(f"04-FilterBlast/{name}"): os.makedirs("05-MergeBlast")
@@ -183,16 +191,16 @@ for sample in f:
     # Filter and Merge Blast results
     gwf.target(f'Filter_Blast_{name}',
      inputs=[f"03-Blast/{name}/{name}_{num:04}.tsv" for num in range(num_files)],
-     outputs=[f"04-FilterBlast/{name}/{name}_filtered_{num:04}.tsv" for num in range(num_files)] + [f"05-MergeBlast/{name}.tsv"],
+     outputs=[f"04-FilterBlast/{name}/{name}_{num:04}_filter.tsv" for num in range(num_files)] + [f"05-MergeBlast/{name}.tsv"],
      cores=1, 
      memory='4g', 
-     walltime='2:00:00') << """
+     walltime='8:00:00') << """
         # Filter Blast
-        for file in $(ls 03-Blast/{name}/ | cut -d '.' -f 1,2); do cut -f 1-14,17-18 $file | awk '($4 >= 100)' | awk '($3 >= 90)' | sort -k1,1 -k12,12nr -k11,11n > 04-FilterBlast/{name}/"$file"_filter.tsv; done
+        for file in $(ls 03-Blast/{name}/); do cut -f 1-14,17-20 03-Blast/{name}/$file | awk '($4 >= 100)' | awk '($3 >= 90)' | awk '($15 >= 90)' | sort -k1,1 -k12,12nr -k11,11n > 04-FilterBlast/{name}/$(echo $file | cut -d "." -f 1)_filter.tsv; done
 
         # Merge Blast outputs
         cat 04-FilterBlast/{name}/*_filter.tsv > 05-MergeBlast/{name}.tsv
-        """.format(name=name)
+    """.format(name=name)
 
 f.close()
 
@@ -203,47 +211,38 @@ f.close()
 # Obtain taxids (MODIFY!!)
 gwf.target('Obtain_taxids', 
 inputs=[f"05-MergeBlast/{name}.tsv" for name in samples],
-outputs=["multiple.taxids.tsv","single.taxids.tsv"],
+outputs=["taxids.tsv"],
 cores=1, 
-memory='4g', 
+memory='2g', 
 walltime='2:00:00') << """
 # Obtain taxids
 for file in $(ls 05-MergeBlast/)
 do
-	cut -f 20 $file | sort | uniq >> taxids.tmp.tsv
+	cut -f 18 05-MergeBlast/$file | sort | uniq >> taxids.tmp.tsv
 done
 cat taxids.tmp.tsv | sort | uniq > taxids.tsv
 rm taxids.tmp.tsv
-
-# Divide taxids between single and multiple (semicolons separated)
-grep ';' taxids.tsv > multiple.taxids.tsv
-grep -v ';' taxids.tsv > single.taxids.tsv
 """
-
-# MRCA for multiple taxids (TaxizeDB)
-# gwf.target('Clean_taxids_(MRCA)', inputs=["multiple.taxids.tsv"], outputs=["m2s.taxids.tsv"]) << """
-#Rscript mulipleTaxids2singleTaxid.lca.R
-#"""
 
 # Get taxonomy (TaxizeDB)
 gwf.target('Get_taxonomy',
-inputs=["single.taxids.tsv","m2s.taxids.tsv"],
+inputs=["taxids.tsv"],
 outputs=["taxid2taxonomy.tsv"],
 cores=1, 
-memory='4g', 
-walltime='2:00:00') << """
-Rscript taxid2taxa.lca.R
+memory='2g', 
+walltime='6:00:00') << """
+Rscript scripts/taxid2taxa.lca.R
 """
 
-# Get LCA from original Blast (TaxizeDB) -> Filtered for e-value < 0.0001, algn len >= 100 and pident >= 90
+# Get LCA from original Blast (TaxizeDB) -> Filtered for e-value < 0.0001, algn len >= 100, pident >= 90 and qcovs >= 90
 if not os.path.isdir("06-LCA") and os.path.isdir(f"05-MergeBlast"): os.makedirs("06-LCA")
 gwf.target(f'Blast_MRCA_{name}',
 inputs=[f"05-MergeBlast/{name}.tsv" for name in samples] + ["taxid2taxonomy.tsv"],
 outputs=[f"06-LCA/{name}.lca.tsv" for name in samples],
 cores=1, 
-memory='4g', 
-walltime='2:00:00') << """
-Rscript lca.R
+memory='12g', 
+walltime='4:00:00') << """
+Rscript scripts/lca.R
 """
 
 # Generate species-count matrix (TaxizeDB)
