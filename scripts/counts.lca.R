@@ -2,11 +2,11 @@
 library(tidyverse)
 
 # Data
-f <- list.files(path = "06-LCA/", pattern = "*.lca.tsv", full.names = TRUE)
+f <- list.files(path = "06-mergeLCA/", pattern = "*.lca.tsv", full.names = TRUE)
 dfs <- lapply(f, function(x) read.csv2(x, header=T, sep="\t") %>% mutate(file = str_replace(str_replace(x,".lca.tsv",""),"lca//","")))
 
 # Transform data
-dfs <- lapply(dfs, function(x) x %>% select(-X1) %>%  group_by(superkingdom,kingdom,phylum,order,class,family,genus,species,file) %>% count() %>% spread(file, n))
+dfs <- lapply(dfs, function(x) x %>% select(-c(V1,count)) %>%  group_by(superkingdom,kingdom,phylum,order,class,family,genus,species,file) %>% count() %>% spread(file, n))
 
 # Group data
 df <- Reduce(function(...) merge(..., all=T), dfs)

@@ -123,6 +123,7 @@ for sample in f:
     gwf.target_from_template(f'fq2fa_{name}', fastq2fasta(fqinput = f'01-Merge/{name}/{name}.merged.fastq', faoutput = f'01-Merge/{name}/{name}.fasta', memory = 4))
 
     # Open file with number of splits
+    # ERROR: CREATE .number_of_lines.tsv (Sample\tNumReads\n)
     lines_file = ".number_of_lines.tsv"
     d = {} # Dictionary number of lines
     if os.path.exists(lines_file):
@@ -166,7 +167,7 @@ for sample in f:
     # To do:
     # Make histogram of length, pident and qcovs
     # Make column with number of reads per taxons (readid, taxonid, number of hits for taxon)
-    # REMOVE 's' from 'staxid" and re-do blast with lower hits and more reads per file
+    # REMOVE 's' from 'staxid" and re-do blast with lower hits and more reads per file (Done!)
     # Columns A) how many reads produce the LCA and B) How many unique taxa for the LCA (Do not account represented taxa Gadus Morua and Gadus should be one unique taxa!)
     # Danish taxa in the taxids list (independent)
     # Example of reads and hits
@@ -191,7 +192,7 @@ for sample in f:
     # Filter and Merge Blast results
     gwf.target(f'Filter_Blast_{name}',
      inputs=[f"03-Blast/{name}/{name}_{num:04}.tsv" for num in range(num_files)],
-     outputs=[f"04-FilterBlast/{name}/{name}_{num:04}_filter.tsv" for num in range(num_files)] + [f"05-MergeBlast/{name}.tsv"],
+     outputs=[f"04-FilterBlast/{name}/{name}_{num:04}_filter.tsv" for num in range(num_files)],
      cores=1, 
      memory='4g', 
      walltime='8:00:00') << """
@@ -199,51 +200,89 @@ for sample in f:
         for file in $(ls 03-Blast/{name}/); do cut -f 1-14,17-20 03-Blast/{name}/$file | awk '($4 >= 100)' | awk '($3 >= 90)' | awk '($15 >= 90)' | sort -k1,1 -k12,12nr -k11,11n > 04-FilterBlast/{name}/$(echo $file | cut -d "." -f 1)_filter.tsv; done
 
         # Merge Blast outputs
-        cat 04-FilterBlast/{name}/*_filter.tsv > 05-MergeBlast/{name}.tsv
+        # cat 04-FilterBlast/{name}/*_filter.tsv > 05-MergeBlast/{name}.tsv
+    """.format(name=name)
+
+    # Merge
+    gwf.target(f'Merge_LCA_{name}',
+    inputs=[f"05-LCA/{name}/{name}_{num:04}_filter.lca.tsv" for num in range(num_files)],
+    outputs=[f"06-mergeLCA/{name}.lca.tsv"],
+    cores=1, 
+    memory='4g', 
+    walltime='48:00:00') << """
+    mkdir -p 06-mergeLCA/
+    head -n 1 05-LCA/{name}/{name}_0000_filter.lca.tsv > 06-mergeLCA/{name}.lca.tsv
+    cat 05-LCA/{name}/{name}_*_filter.lca.tsv | grep -wv "superkingdom" >> 06-mergeLCA/{name}.lca.tsv
     """.format(name=name)
 
 f.close()
 
-# Install in ROBITools Environment 
-# devtools::install_gitlab("obitools/ROBITaxonomy", host = "https://git.metabarcoding.org/")
-# devtools::install_gitlab("obitools/ROBITools", host = "https://git.metabarcoding.org/")
-
-# Obtain taxids (MODIFY!!)
-gwf.target('Obtain_taxids', 
-inputs=[f"05-MergeBlast/{name}.tsv" for name in samples],
-outputs=["taxids.tsv"],
-cores=1, 
-memory='2g', 
-walltime='2:00:00') << """
 # Obtain taxids
-for file in $(ls 05-MergeBlast/)
-do
-	cut -f 18 05-MergeBlast/$file | sort | uniq >> taxids.tmp.tsv
-done
-cat taxids.tmp.tsv | sort | uniq > taxids.tsv
-rm taxids.tmp.tsv
-"""
+if os.path.isdir("04-FilterBlast/"):
+    dirs = os.listdir("04-FilterBlast/")
+    lens = {i:len(os.listdir(f"02-Split/{i}")) for i in dirs}
+    inputs = [f"04-FilterBlast/{i}/{i}_{j:04}_filter.tsv" for i in dirs for j in range(lens[i])]
+    gwf.target('Obtain_taxids', 
+    inputs=inputs,
+    outputs=["taxids.tsv"],
+    cores=1, 
+    memory='2g', 
+    walltime='6:00:00') << """
+    # Obtain taxids
+    for file in $(ls -d 04-FilterBlast/*/*)
+    do
+        cut -f 18 $file | sort | uniq >> taxids.tmp.tsv
+    done
+    cat taxids.tmp.tsv | sort | uniq > taxids.tsv
+    rm taxids.tmp.tsv
+    """
 
-# Get taxonomy (TaxizeDB)
-gwf.target('Get_taxonomy',
-inputs=["taxids.tsv"],
-outputs=["taxid2taxonomy.tsv"],
-cores=1, 
-memory='2g', 
-walltime='6:00:00') << """
-Rscript scripts/taxid2taxa.lca.R
-"""
+    # Get taxonomy (TaxizeDB)
+    gwf.target('Get_taxonomy',
+    inputs=["taxids.tsv"],
+    outputs=["taxid2taxonomy.tsv"],
+    cores=1, 
+    memory='2g', 
+    walltime='6:00:00') << """
+    Rscript scripts/taxid2taxa.lca.R
+    """
 
-# Get LCA from original Blast (TaxizeDB) -> Filtered for e-value < 0.0001, algn len >= 100, pident >= 90 and qcovs >= 90
-if not os.path.isdir("06-LCA") and os.path.isdir(f"05-MergeBlast"): os.makedirs("06-LCA")
-gwf.target(f'Blast_MRCA_{name}',
-inputs=[f"05-MergeBlast/{name}.tsv" for name in samples] + ["taxid2taxonomy.tsv"],
-outputs=[f"06-LCA/{name}.lca.tsv" for name in samples],
-cores=1, 
-memory='12g', 
-walltime='4:00:00') << """
-Rscript scripts/lca.R
-"""
+    # Open file again 
+    f = open(info_file,'r')
+
+    for sample in f:
+        
+        if sample[0] == '#':
+            continue
+
+        # Prepare the data to be given to the functions
+        sample = sample.strip().split("\t")
+        name = sample[2]	# name
+
+        # Number of files
+        num_files = lens[name]
+
+        # Execution
+        #----------
+
+        # Get LCA from original Blast (TaxizeDB) -> Filtered for e-value < 0.0001, algn len >= 100, pident >= 90 and qcovs >= 90
+        if not os.path.isdir(f"05-LCA/{name}") and os.path.isdir(f"04-FilterBlast/{name}"): os.makedirs(f"05-LCA/{name}")
+
+        gwf.target(f'Blast_LCA_{name}',
+        inputs= [f"04-FilterBlast/{name}/{name}_{num:04}_filter.tsv" for num in range(num_files)] + ["taxid2taxonomy.tsv"],
+        outputs=[f"05-LCA/{name}/{name}_{num:04}_filter.lca.tsv" for num in range(num_files)],
+        cores=4, 
+        memory='16g', 
+        walltime='48:00:00') << """
+        Rscript scripts/lca.R -s {name} -t 4
+        """.format(name=name)
+
+    f.close()
+
+# Install in ROBITools Environment
+# devtools::install_gitlab("obitools/ROBITaxonomy", host = "https://git.metabarcoding.org/")
+# install.packages("igraph")
+# devtools::install_gitlab("obitools/ROBITools", host = "https://git.metabarcoding.org/")
 
 # Generate species-count matrix (TaxizeDB)
 gwf.target('Count_matrix',
@@ -252,7 +291,7 @@ outputs=["lca.taxa.count.tsv"],
 cores=1,
 memory='4g',
 walltime='2:00:00') << """
-Rscript counts.lca.R
+Rscript scripts/counts.lca.R
 """
 
 # Rarefy (ROBITools)
@@ -262,7 +301,7 @@ outputs=["Pore_size_table_for_rarefy.tsv","counts.lca.rarefy.tsv"],
 cores=1,
 memory='4g',
 walltime='2:00:00') << """
-Rscript rarefyROBI.R
+Rscript scripts/rarefyROBI.R
 """
 
 # Obtain summary table and heatmap (Bioconductor)
@@ -272,5 +311,5 @@ outputs=["reads.lca.perc.phylum.tsv", "reads.lca.phylum.tsv"],
 cores=1,
 memory='4g',
 walltime='2:00:00') << """
-Rscript summaryTable.lca.R
+Rscript scripts/summaryTable.lca.R
 """

@@ -5,7 +5,8 @@ library(ComplexHeatmap)
 library(edgeR)
 
 # Samples
-s <- c('A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0','GP_1','GP_2','GP_3')
+s <- c('OP0.2A','OP0.2B','OP0.2C','OP1.2A','OP1.2B','OP1.2C','OP5.0A','OP5.0B','OP5.0C','OP8.0A','OP8.0B','OP8.0C', 'EN0.2A','EN0.2B','EN0.2C')
+# s <- c('A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0','GP_1','GP_2','GP_3')
 
 # Data
 df <- read.delim("counts.lca.rarefy.tsv")
@@ -25,7 +26,7 @@ df <- read.delim("counts.lca.rarefy.tsv")
 dfeu <- df %>% filter(superkingdom == "Eukaryota")
 ph <- dfeu %>% group_by(phylum) %>% drop_na("phylum") %>% select(s) %>% melt() %>% ungroup() %>% group_by(phylum, variable) %>% summarise(value = sum(value)) %>% spread(phylum, value) %>% rename(sample = variable) %>% as.data.frame()
 rownames(ph) <- ph$sample
-ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(A0_2))
+ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(OP0.2A))
 write.table(ph, file='reads.lca.phylum.tsv', quote=FALSE, sep='\t', col.names=T ,row.names=F)
 
 phperc <- apply(ph,2,function(x){round(x/sum(x)*100,2)})
@@ -61,14 +62,18 @@ phs <- phs[,c(13:15,1:12)]
 
 # Heatmap
 annot <- rowAnnotation(Kingdom = labels$kingdom, show_annotation_name = F, col = list(Kingdom = c("Fungi"="coral3", "Metazoa"="darkcyan", "Viridiplantae"="darkolivegreen3", "Undefined"="rosybrown3")), border = T)
-Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$kingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 10), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)))
 
+png(file="07-Plots/Heatmap.EU.png")
+p <- Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$kingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 10), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)), raster_quality=3)
+draw(p)
+dev.off()
+ 
 
 # NON-EUKARYOTA
 
 ph <- df %>% group_by(phylum) %>% drop_na("phylum") %>% select(s) %>% melt() %>% ungroup() %>% group_by(phylum, variable) %>% summarise(value = sum(value)) %>% spread(phylum, value) %>% rename(sample = variable) %>% as.data.frame()
 rownames(ph) <- ph$sample
-ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(A0_2))
+ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(OP0.2A))
 
 labels <- (df[,c(1,2,3)] %>% unique() %>% select(superkingdom, phylum))
 labels <- merge(labels, rownames(ph), by.x="phylum", by.y="y") %>% arrange(superkingdom)
@@ -77,8 +82,11 @@ phs <- scale_heatmap_row(ph)
 phs <- phs[labels$phylum,]
 phs <- phs[,c(13:15,1:12)]
 
+png(file="07-Plots/Heatmap.ALL.png", units="px", width=1200, height=800)
 annot <- rowAnnotation(Superkingdom = labels$superkingdom, show_annotation_name = F, col = list(Superkingdom = c("Archaea"="coral3", "Bacteria"="darkcyan", "Eukaryota"="orange3", "Viruses"="darkolivegreen3")), border = T)
-p <- Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$superkingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 4), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)))
+p <- Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$superkingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 4), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)), use_raster=T, raster_quality=5)
+draw(p)
+dev.off()
 
 # -----------------------------
 ### Summary tables
