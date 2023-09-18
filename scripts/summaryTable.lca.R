@@ -1,26 +1,20 @@
 # Libraries
 library(tidyverse)
 library(reshape2)
+library(compositions)
 library(ComplexHeatmap)
 library(edgeR)
 
 # Samples
 s <- c('OP0.2A','OP0.2B','OP0.2C','OP1.2A','OP1.2B','OP1.2C','OP5.0A','OP5.0B','OP5.0C','OP8.0A','OP8.0B','OP8.0C', 'EN0.2A','EN0.2B','EN0.2C')
-# s <- c('A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0','GP_1','GP_2','GP_3')
 
 # Data
 df <- read.delim("counts.lca.rarefy.tsv")
 
-## TMM
-# x <- df[,-c(1:8)]
-# scale.factors <- calcNormFactors(x, lib.size=NULL, method = "TMM")
-# norm.data <- t(t(x)/(scale.factors*817133))
-# tmm <- cbind(df[,1:8],norm.data)
+# Colors
+colors <- rev(colorRampPalette(brewer.pal(11,"RdBu"))(16))
 
-# y <- tmm %>% select(superkingdom,s) %>% melt() %>% drop_na()
-# y$superkingdom <- factor(y$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
-# y$variable <- factor(y$variable, levels = c('GP_1','GP_2','GP_3','A0_2','B0_2','C0_2','A1_2','B1_2','C1_2','A5_0','B5_0','C5_0','A8_0','B8_0','C8_0'))
-# y %>% ggplot() + geom_boxplot(aes(x=variable,y=value, color=superkingdom)) + scale_color_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) + facet_wrap(~superkingdom) + theme_classic() %+replace% theme(axis.text.x = element_text(angle = 90))
+## Eukaryota
 
 # Phylum
 dfeu <- df %>% filter(superkingdom == "Eukaryota")
@@ -29,48 +23,28 @@ rownames(ph) <- ph$sample
 ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(OP0.2A))
 write.table(ph, file='reads.lca.phylum.tsv', quote=FALSE, sep='\t', col.names=T ,row.names=F)
 
-phperc <- apply(ph,2,function(x){round(x/sum(x)*100,2)})
-write.table(phperc, file='reads.lca.perc.phylum.tsv', quote=FALSE, sep='\t', col.names=T ,row.names=F)
-
 # Sort
 labels <- (df[,c(1,2,3)] %>% filter(superkingdom == "Eukaryota") %>% unique() %>% select(kingdom, phylum))
 labels <- merge(labels, rownames(ph), by.x="phylum", by.y="y") %>% arrange(kingdom)
 labels$kingdom[is.na(labels$kingdom)] <- "Undefined"
 
-# Color
-lab <- colorRampPalette(c("lightblue","lightyellow","orange","red","darkred"),  space = "Lab")
-
-# Scale Rows
-scale_heatmap_row <- function(x) {
-  x <- sweep(x, 1L, rowMeans(x, na.rm = F), check.margin = FALSE)
-  sx <- apply(x, 1L, sd, na.rm = F)
-  x <- sweep(x, 1L, sx, "/", check.margin = FALSE)
-  return(x)
-}
-scale_heatmap_column <- function(x) {
-  x <- sweep(x, 2L, colMeans(x, na.rm = F), check.margin = FALSE)
-  sx <- apply(x, 2L, sd, na.rm = F)
-  x <- sweep(x, 2L, sx, "/", check.margin = FALSE)
-  return(x)
-}
-
-phs <- scale_heatmap_row(ph)
+# CLR and reorder
+phs <- clr(ph)
 phs <- phs[labels$phylum,]
-
-# Reorder GPs
 phs <- phs[,c(13:15,1:12)]
 
 # Heatmap
 annot <- rowAnnotation(Kingdom = labels$kingdom, show_annotation_name = F, col = list(Kingdom = c("Fungi"="coral3", "Metazoa"="darkcyan", "Viridiplantae"="darkolivegreen3", "Undefined"="rosybrown3")), border = T)
 
-png(file="07-Plots/Heatmap.EU.png")
-p <- Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$kingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 10), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)), raster_quality=3)
+# Heatmap
+png(file="07-Plots/Heatmap.EU.CLR.png", width=2300, height=2000, res=300)
+p <- Heatmap(as.matrix(phs), name = "Center Log Ratio \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = colors, left_annotation = annot, row_split = labels$kingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 10), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)), raster_quality=3)
 draw(p)
 dev.off()
- 
 
-# NON-EUKARYOTA
+## All Superkingdoms
 
+# Phylum
 ph <- df %>% group_by(phylum) %>% drop_na("phylum") %>% select(s) %>% melt() %>% ungroup() %>% group_by(phylum, variable) %>% summarise(value = sum(value)) %>% spread(phylum, value) %>% rename(sample = variable) %>% as.data.frame()
 rownames(ph) <- ph$sample
 ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(OP0.2A))
@@ -78,13 +52,34 @@ ph <- ph %>% select(-sample) %>% t() %>% as.data.frame() %>% arrange(desc(OP0.2A
 labels <- (df[,c(1,2,3)] %>% unique() %>% select(superkingdom, phylum))
 labels <- merge(labels, rownames(ph), by.x="phylum", by.y="y") %>% arrange(superkingdom)
 
-phs <- scale_heatmap_row(ph)
+# CLR and reorder
+phs <- clr(ph)
 phs <- phs[labels$phylum,]
 phs <- phs[,c(13:15,1:12)]
 
-png(file="07-Plots/Heatmap.ALL.png", units="px", width=1200, height=800)
+# CLR effect
+ph_melt <- melt(ph)
+clr_melt <- melt(as.data.frame(table))
+
+# Pre-CLR
+p <- ph_melt %>% ggplot() + geom_histogram(aes(x=value, fill=variable), bins=50) +
+facet_wrap(~variable)
+
+png(file="07-Plots/.png", width=2300, height=2000, res=300)
+p
+dev.off()
+
+# Post-CLR
+p <- clr_melt %>% ggplot() + geom_histogram(aes(x=value, fill=variable), bins=50) +
+facet_wrap(~variable)
+png(file="07-Plots/.png", width=2300, height=2000, res=300)
+p
+dev.off()
+
+# Heatmap
+png(file="07-Plots/Heatmap.ALL.png", width=2300, height=2000, res=300)
 annot <- rowAnnotation(Superkingdom = labels$superkingdom, show_annotation_name = F, col = list(Superkingdom = c("Archaea"="coral3", "Bacteria"="darkcyan", "Eukaryota"="orange3", "Viruses"="darkolivegreen3")), border = T)
-p <- Heatmap(as.matrix(phs), name = "Row Scaled \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = lab(16), left_annotation = annot, row_split = labels$superkingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 4), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)), use_raster=T, raster_quality=5)
+p <- Heatmap(as.matrix(phs), name = "Center Log Ratio \n Counts", cluster_rows = F, cluster_columns = F, row_order = labels$phylum, col = colors, left_annotation = annot, row_split = labels$superkingdom, row_names_side = "left", row_names_gp = gpar(fontsize = 4), border = "gray60", column_split = c(rep("Enclosed",3), rep("Open",12)), use_raster=T, raster_quality=5)
 draw(p)
 dev.off()
 

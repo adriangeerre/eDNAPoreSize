@@ -165,16 +165,15 @@ for sample in f:
 
     #####
     # To do:
-    # Make histogram of length, pident and qcovs
-    # Make column with number of reads per taxons (readid, taxonid, number of hits for taxon)
-    # REMOVE 's' from 'staxid" and re-do blast with lower hits and more reads per file (Done!)
     # Columns A) how many reads produce the LCA and B) How many unique taxa for the LCA (Do not account represented taxa Gadus Morua and Gadus should be one unique taxa!)
     # Danish taxa in the taxids list (independent)
     # Example of reads and hits
 
     # Metabar: Use Pore_size_18S_clean.xlsx (Check the details of the Rmarkdown file that produce them - Richness is slighlty modified) -> New Folder of MADS!
 
-    # Manuscript: Explain in detail the Rarefactian (Median)
+    # Manuscript:
+    #   Explain in detail the Rarefactian (Median)
+    #   Explain CLR transform of the data
     #####
 
     # Summarise Blast

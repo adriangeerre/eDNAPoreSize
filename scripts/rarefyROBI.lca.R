@@ -6,6 +6,8 @@ library(vegan)
 library(ggalt)
 library(ggpubr)
 library(ggrepel)
+library(grid)
+library(wordcloud)
 
 # Data (Eukaryota less than expected because multiple taxids refer to the same taxa)
 dfraw <- read.delim("lca.taxa.count.tsv", check.names=F)
@@ -23,56 +25,71 @@ spkm_bars <- dfraw %>% filter(superkingdom %in% c("Bacteria","Archaea","Eukaryot
 
 spkm_bars$superkingdom <- factor(spkm_bars$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
 spkm_bars$variable <- factor(spkm_bars$variable, levels = newnames)
+spkm_bars <- spkm_bars %>% mutate(type = ifelse(grepl("EN", variable), "Enclosed", "Open"))
 
 p <- spkm_bars %>% ggplot() + geom_col(aes(x=variable,y=perc,fill=superkingdom)) +
  labs(x = "Sample", y = "Percentage", fill="Domain") +
  scale_fill_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) +
- theme_classic() %+replace% theme(axis.text.x = element_text(angle = 45))
+ facet_wrap(~type, scales="free_x") +
+ theme_classic() %+replace% theme(
+  axis.text.x = element_text(angle = 90, size=18),
+  axis.text.y = element_text(size=18),
+  axis.title = element_text(size=20),
+  strip.text.x = element_text(size = 16, face="bold"),
+  strip.background = element_blank(),
+  legend.title = element_text(size=18, face="bold"),
+  legend.text = element_text(size=16))
 
-ggsave("07-Plots/bars.spkm.raw.png", p, units="px", width=3500)
+gt = ggplot_gtable(ggplot_build(p))
+gt$widths[5] = 0.26*gt$widths[5]
+
+png(file="07-Plots/bars.spkm.raw.png", width=2300, height=2000, res=300)
+grid.draw(gt)
+dev.off()
 
 ## Plots Phylum
 phyl_bars <- dfraw %>% filter(superkingdom %in% c("Bacteria","Archaea","Eukaryota","Viruses")) %>% select(c(1,3,9:23)) %>% melt() %>% drop_na() %>% group_by(superkingdom, phylum, variable) %>% summarise(count = sum(value)) %>% ungroup() %>% group_by(variable) %>% mutate(perc = count/sum(count) * 100) %>% filter(count > 0)
 
 phyl_bars$superkingdom <- factor(phyl_bars$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
 phyl_bars$variable <- factor(phyl_bars$variable, levels = newnames)
+phyl_bars <- phyl_bars %>% mutate(type = ifelse(grepl("EN", variable), "Enclosed", "Open"))
 
 p <- phyl_bars %>% ggplot() + geom_col(aes(x=variable,y=perc,fill=superkingdom), color="black") +
  labs(x = "Sample", y = "Percentage", fill="Domain") +
  guides(fill = "none") +
  scale_fill_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) +
- theme_classic() %+replace% theme(axis.text.x = element_text(angle = 45)) 
+ facet_wrap(~type, scales="free_x") +
+ theme_classic() %+replace% theme(axis.text.x = element_text(
+  angle = 90, size=18),
+  axis.text.y = element_text(size=18),
+  axis.title = element_text(size=20),
+  strip.text.x = element_text(size = 16, face="bold"),
+  strip.background = element_blank(),
+  legend.title = element_text(size=18, face="bold"),
+  legend.text = element_text(size=16)) 
 
-ggsave("07-Plots/bars.phyl.raw.png", p, units="px", width=3500)
+gt = ggplot_gtable(ggplot_build(p))
+gt$widths[5] = 0.28*gt$widths[5]
 
-# PCA
-pcaplot <- function(x) {
-  mat  = t(x)
-  pca  = prcomp(mat, scale=F)
-  summary(pca)
-  col = c(rep("blue3",3), rep("red3",3), rep("green3",3), rep("orange3",3),rep("darkcyan",3))
-  col.leg = c("blue3", "red3", "green3", "orange3","darkcyan")
-  nam = newnames
-  legend = c("0.2","1.2","5.0","8.0")
-  aval  = pca$sdev^2
-  cvar  = pca$rotation %*% diag(pca$sdev)
-  #screeplot(pca, npcs=min(10, length(pca$sdev)), type="lines", col="red", main="Screeplot")
-  pos = c(rep(1,length(nam)-1), 3)
-  xs  = pca$x[,1]
-  ys  = pca$x[,2]
-  
-  xlab = paste("PC1 (", summary(pca)$importance[2,1]*100, " %)", sep='')
-  ylab = paste("PC2 (", summary(pca)$importance[2,2]*100, " %)", sep='')
-  plot(pca$x[,1:2], pch=19, col=col, main="Two-dimensional PCA (Presence/Absence)", xlab=xlab, ylab=ylab)
-  abline(h=0, v=0, lty=2, col=8)
-  text(xs, ys, labels=nam, pos=pos)
-}
+png(file="bars.phyl.raw.png", width=2300, height=2000, res=300)
+grid.draw(gt)
+dev.off()
 
-dfpca <- dfraw[9:23]
-dfpca[dfpca > 0] <- 1
-pca <- pcaplot(dfpca)
+# Word Cloud
+x <- phyl_bars[phyl_bars$superkingdom == "Archaea",]  %>% group_by(phylum) %>% summarize(perc = sum(perc))
+png("07-Plots/sup.wordcloud.barphyl.arc.png", width=1200, height=1200, res=200)
+wordcloud(words = x$phylum, freq=x$perc, colors=brewer.pal(8, "Set2"), min.freq=1e-10, random.order=FALSE)
+dev.off()
 
-# ggsave("07-Plots/PCA.raw.png", pca, units="px", width=3500)
+y <- phyl_bars[phyl_bars$superkingdom == "Bacteria",]  %>% group_by(phylum) %>% summarize(perc = sum(perc))
+png("07-Plots/sup.wordcloud.barphyl.bac.png", width=1200, height=1200, res=200)
+wordcloud(words = y$phylum, freq=y$perc, colors=brewer.pal(8, "Set2"), min.freq=1e-10, random.order=FALSE)
+dev.off()
+
+z <- phyl_bars[phyl_bars$superkingdom == "Eukaryota",]  %>% group_by(phylum) %>% summarize(perc = sum(perc))
+png("07-Plots/sup.wordcloud.barphyl.euk.png", width=1200, height=1200, res=200)
+wordcloud(words = z$phylum, freq=z$perc, colors=brewer.pal(8, "Set2"), min.freq=1e-10, random.order=FALSE)
+dev.off()
 
 # Relative Abundance PCA (nMDS) - Mads!
 
@@ -97,7 +114,12 @@ nMDS_plot <- function(reads, samples) {
                   alpha = 0.2, color = "black", show.legend = FALSE) +
     geom_text_repel() +
     labs(colour='Filter type') +
-    theme_classic()
+    theme_classic() %+replace% theme(
+      axis.text.x = element_text(size=14),
+      axis.text.y = element_text(size=14),
+      axis.title = element_text(size=20),
+      legend.title = element_text(size=18, face="bold"),
+      legend.text = element_text(size=16))
   
   return(p)
 }
@@ -113,7 +135,6 @@ dfraw <- dfraw[,c(9:24,1:8,25)]
 colnames(dfraw) <- cols
 write.table(dfraw, file='Pore_size_table_for_rarefy.txt', quote=FALSE, sep='\t', col.names = NA,row.names=TRUE) # Write table to read as metabarcoding data
 
-
 # Normalization (Rarefy)
 # Function rarefy gives the expected species richness in random subsamples of size sample from the community. The function rarefy is based on Hurlbert's (1971) formulation, and the standard errors on Heck et al. (1975). In order to rarefy the data we need to create a count of species (rows) per sample (columns). The workflow is based in Eva's script including Mads modifications (Vandloeb_Summer_20200529.Rmd).
 dfimp <- import.metabarcoding.data("Pore_size_table_for_rarefy.txt") # Read data with ROBITools
@@ -124,7 +145,9 @@ samples <- samples %>% mutate(pore = ifelse(sample %in% c("OP0.2A","OP0.2B","OP0
 reads <- dfimp@reads
 p <- nMDS_plot(reads, samples)
 
-ggsave("07-Plots/nMDS.raw.png", p, units="px", width=3500)
+png(file="07-Plots/nMDS.raw.png", width=2300, height=2000, res=300)
+p
+dev.off()
 
 ## Rarefy by sample
 mdn <- summary(rowSums(dfimp@reads[dfimp@samples$sample,]))[[3]]
@@ -150,19 +173,28 @@ write.table(dfend, file='counts.lca.rarefy.tsv', quote=FALSE, sep='\t', col.name
 spkm_bars <- dfend %>% filter(superkingdom %in% c("Bacteria","Archaea","Eukaryota","Viruses")) %>% select(c(1,9:23)) %>% melt() %>% group_by(superkingdom, variable) %>% summarise(count = sum(value)) %>% ungroup() %>% group_by(variable) %>% mutate(perc = count/sum(count) * 100)
 
 spkm_bars$superkingdom <- factor(spkm_bars$superkingdom, levels = c("Archaea","Viruses","Bacteria","Eukaryota"))
-spkm_bars$variable <- factor(spkm_bars$variable, levels = newnames) 
+spkm_bars$variable <- factor(spkm_bars$variable, levels = newnames)
+spkm_bars <- spkm_bars %>% mutate(type = ifelse(grepl("EN", variable), "Enclosed", "Open"))
 
 p <- spkm_bars %>% ggplot() + geom_col(aes(x=variable,y=perc,fill=superkingdom)) +
  labs(x = "Sample", y = "Percentage", fill="Domain") +
  scale_fill_manual(values = c("coral3", "darkolivegreen3", "darkcyan", "orange3")) +
- theme_classic() %+replace% theme(axis.text.x = element_text(angle = 45))
+ facet_wrap(~type, scales="free_x") +
+ theme_classic() %+replace% theme(
+  axis.text.x = element_text(angle = 90, size=18),
+  axis.text.y = element_text(size=18),
+  axis.title = element_text(size=20),
+  strip.text.x = element_text(size = 16, face="bold"),
+  strip.background = element_blank(),
+  legend.title = element_text(size=18, face="bold"),
+  legend.text = element_text(size=16))
 
-ggsave("07-Plots/bars.spkm.rarefy.png", p, units="px", width=3500)
+gt = ggplot_gtable(ggplot_build(p))
+gt$widths[5] = 0.28*gt$widths[5]
 
-# PCA
-# dfpca <- dfend[9:23]
-# dfpca[dfpca > 0] <- 1
-# pcaplot(dfpca)
+png(file="07-Plots/bars.spkm.rarefy.png", width=2300, height=2000, res=300)
+grid.draw(gt)
+dev.off()
 
 ## nMDS plot (after rarefaction)
 samples <- dfrar@samples
@@ -170,4 +202,6 @@ samples <- samples %>% mutate(pore = ifelse(sample %in% c("OP0.2A","OP0.2B","OP0
 reads <- dfrar@reads
 p <- nMDS_plot(reads, samples)
 
-ggsave("07-Plots/nMDS.rarefy.png", p, units="px", width=3500)
+png(file="07-Plots/nMDS.rarefy.png", width=2300, height=2000, res=300)
+p
+dev.off()
