@@ -4,7 +4,7 @@
 
 This repository contains the environments, pipelines, scripts, notebooks and auxiliary files belonging to the publication about eDNA pore size on seawater danish samples.
 
-    *Filter pore size influences taxonomic composition of retained eDNA from seawater samples – evidence from shotgun sequencing*
+*Filter pore size influences taxonomic composition of retained eDNA from seawater samples – evidence from shotgun sequencing*
 
 **Usage**
 
