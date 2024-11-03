@@ -1,0 +1,436 @@
+	count	scientific_name	max.sample	max.ext_con
+seq10001	12	Rhizophydium	0	12
+seq10002	12	Sessilida	0	12
+seq10059	11	Amoeboaphelidium	0	11
+seq10085	11	Operculariidae	0	11
+seq10151	11	Phaenocora	3	8
+seq1019	3477	Holosticha	262	946
+seq1021	3476	NA	272	342
+seq10238	11	Eumonhystera	0	11
+seq1040	3350	Holosticha	252	946
+seq10409	11	Rhizophydium	0	11
+seq10482	10	Rhizophydium	0	10
+seq105	105359	NA	5734	19
+seq10732	10	Paraenchelys	5	5
+seq1080	3091	Rhizophydium	110	885
+seq1081	3085	NA	388	727
+seq10824	10	Bacillariophyceae	0	10
+seq10897	9	Saprolegnia	0	9
+seq10975	9	Cryptomonas	0	9
+seq10976	9	Aphelidium desmodesmi	0	9
+seq1104	2898	NA	436	755
+seq11040	9	NA	0	9
+seq11102	9	Spumella-like flagellate JBM08	0	9
+seq11150	9	Metabolomonas	0	9
+seq11151	9	Eumonhystera	0	9
+seq1119	2813	Aspidisca lynceus	15	877
+seq11197	9	Paraenchelys	5	4
+seq11310	9	Lepidodermella minus	0	9
+seq11361	8	Operculariidae	0	8
+seq11488	8	Chelonaplysilla	0	8
+seq1154	2656	Rhizophydium	93	702
+seq11557	8	Aphelidium desmodesmi	0	8
+seq11589	8	Litonotus	3	5
+seq11803	8	Bacillariophyceae	0	8
+seq11875	8	NA	0	8
+seq11876	8	NA	0	8
+seq1190	2532	Aspidisca lynceus	12	741
+seq12093	7	Vorticella	0	7
+seq1223	2396	Heterolepidoderma macrops	0	1986
+seq12261	7	Metabolomonas	0	7
+seq12262	7	Trachelophyllidae	0	7
+seq1262	2218	Heterolepidoderma macrops	0	1832
+seq12825	6	Chelonaplysilla	0	6
+seq129	87476	NA	5257	16
+seq1311	2070	Dexiostoma	190	651
+seq13303	5	Saprolegnia	0	5
+seq13394	5	Cryptomonas	0	5
+seq13395	5	Endochytrium	0	5
+seq13520	5	Phaenocora	0	5
+seq13521	5	Hydrurus foetidus	0	5
+seq13623	5	Zoothamniidae	0	5
+seq13624	5	Hydrurus foetidus	0	5
+seq13625	5	Vorticella	0	5
+seq13626	5	Haptorida	0	5
+seq13743	5	Loxophyllum	0	5
+seq1375	1874	Dexiostoma	164	589
+seq1387	1839	Sphaeroeca leprechaunica	8	862
+seq13975	5	Fragilariophyceae	0	5
+seq14080	5	NA	0	5
+seq14081	5	Sessilida	0	5
+seq1411	1781	Sphaeroeca leprechaunica	8	783
+seq14195	4	Saprolegniaceae	0	4
+seq14196	4	Endochytrium	0	4
+seq14197	4	Korotnevella	0	4
+seq14305	4	Fragilariophyceae	0	4
+seq14307	4	Korotnevella	0	4
+seq14430	4	Zoothamniidae	0	4
+seq14539	4	Cosmarium	0	4
+seq14647	4	Holosticha	0	4
+seq14883	4	Vannella	0	4
+seq14996	4	Spirotrichea	0	4
+seq15116	3	Fragilariophyceae	0	3
+seq1531	1519	Cercozoa sp. Driefontein B	163	89
+seq1543	1506	Cercozoa sp. Driefontein B	186	89
+seq15748	3	Loxophyllum	0	3
+seq15860	3	NA	0	3
+seq16866	2	Fragilariophyceae	0	2
+seq1735	1148	Spathidiidae	0	803
+seq1738	1133	NA	0	851
+seq1740	1130	NA	4	769
+seq1757	1099	Microstomum	0	1099
+seq1795	1059	Rhizophydium	12	616
+seq1855	984	Eurotatoria	13	296
+seq1863	966	NA	75	11
+seq1870	952	Phialina	14	573
+seq1872	950	Eurotatoria	0	652
+seq1876	947	Phialina	8	505
+seq1877	944	NA	78	9
+seq1883	938	Eurotatoria	16	259
+seq1893	928	Eurotatoria	0	604
+seq1921	905	Spathidiidae	0	622
+seq1950	881	Rhizophydium	0	538
+seq1971	867	NA	0	723
+seq1976	864	Microstomum	0	864
+seq2113	744	NA	0	638
+seq2133	730	Vampyrella	8	389
+seq2168	705	Frontonia	0	705
+seq221	46299	NA	3209	7
+seq2274	644	Paraphysomonas uniformis	0	644
+seq2311	620	NA	51	31
+seq2317	611	Vampyrella	2	321
+seq232	42386	NA	2495	9
+seq2341	601	Phialina	0	601
+seq2357	591	Stentor	0	462
+seq2360	590	Epistylidae	3	247
+seq2369	588	NA	52	33
+seq2393	574	Syssomonas	0	574
+seq24	701101	Cryptophyceae	35275	44
+seq2406	567	Frontonia	5	562
+seq2453	546	Blastocladiomycota	8	303
+seq246	38695	Pirsonia guinardiae	1836	3
+seq2476	532	Amastigomonas	0	501
+seq2482	529	Amastigomonas	0	482
+seq25	697754	Cryptophyceae	29266	29
+seq2506	519	Phialina	0	519
+seq2510	517	Epistylidae	3	218
+seq2521	511	Blastocladiomycota	6	310
+seq2554	496	NA	0	496
+seq2558	496	Bacillariophyta	0	259
+seq2599	478	NA	0	478
+seq2605	475	Rhizophydium	12	205
+seq2610	474	NA	0	443
+seq2634	466	Tetrahymena	6	246
+seq2646	462	Vorticella	0	444
+seq2653	461	Stentor	0	335
+seq2669	456	Paraphysomonas uniformis	0	456
+seq2676	454	Syssomonas	0	454
+seq2679	454	Thecofilosea	49	101
+seq2681	453	Paracercomonas sp. xt159	3	448
+seq2685	452	Allantion	0	452
+seq2698	447	Vorticella	0	417
+seq2707	444	Rhizophydium	14	160
+seq2726	438	Tetrahymena	0	195
+seq2728	436	Trechus obtusus	9	315
+seq2739	431	NA	0	400
+seq2752	426	Desmidiales	15	296
+seq2784	410	Urticaceae	134	12
+seq2792	407	Thecofilosea	54	77
+seq2838	390	Allantion	0	390
+seq2846	389	Bacillariophyta	0	234
+seq2873	381	Monhystera	0	381
+seq2876	381	Spumella-like flagellate JBAF33	0	224
+seq2884	374	Trechus obtusus	12	279
+seq2916	363	Paracercomonas sp. xt159	5	358
+seq2923	362	Urticaceae	153	12
+seq2959	351	NA	0	351
+seq2984	341	Arcuospathidium namibiense	0	178
+seq2998	337	Arcuospathidium namibiense	0	171
+seq3002	335	Clitellata	22	279
+seq3033	326	Stentor muelleri	6	301
+seq3053	319	Monhystera	2	317
+seq3085	308	NA	0	308
+seq3091	307	Desmidiales	21	202
+seq3109	304	Clitellata	18	261
+seq3123	300	Stentor muelleri	4	273
+seq3143	295	Pseudovorticella	5	290
+seq3147	294	NA	14	248
+seq3152	293	Pseudovorticella	4	289
+seq3194	282	Spumella-like flagellate JBAF33	0	157
+seq3198	280	Paraphysomonas cambrispina	0	146
+seq3242	268	Enchelys	0	268
+seq3263	264	Spumella-like flagellate JBAF33	0	264
+seq3272	261	NA	14	221
+seq3273	260	Clitellata	20	223
+seq3310	254	Holosticha	29	116
+seq3316	252	Epicarchesium pectinatum	0	228
+seq3321	251	Epicarchesium pectinatum	0	240
+seq3339	247	Paraphysomonas cambrispina	0	160
+seq3350	242	NA	25	11
+seq3384	236	Vorticella	14	114
+seq3387	235	Oligohymenophorea	5	165
+seq3390	234	NA	4	230
+seq3404	232	Oligohymenophorea	7	157
+seq3451	222	Enchelys	0	222
+seq3465	219	Spumella-like flagellate JBAF33	11	120
+seq3468	218	Clitellata	12	199
+seq348	21765	Chrysophyceae	848	337
+seq3483	217	Dinophyceae	32	170
+seq3500	214	Dinophyceae	27	169
+seq3530	206	Chytriomyces	0	161
+seq3535	206	Vorticella	14	98
+seq3555	202	Sessilida	0	202
+seq3565	200	Paramonas	5	195
+seq3571	199	NA	0	169
+seq3607	194	Holosticha	11	90
+seq3623	191	Spumella-like flagellate JBAF33	0	191
+seq3628	189	Uroleptus gallina	9	171
+seq3681	180	Amoeboaphelidium	0	112
+seq3694	180	Tetrahymenidae	0	180
+seq3712	177	NA	0	177
+seq3730	176	Tetrahymenidae	6	154
+seq3731	175	Dileptus sp. FG-2015	0	175
+seq3740	174	Sessilida	0	174
+seq3741	174	Amoeboaphelidium	5	109
+seq3755	173	NA	0	152
+seq3766	172	Uroleptus gallina	9	155
+seq3769	172	Pleurostomatida	46	7
+seq3773	172	Tetrahymenidae	0	72
+seq379	19542	Chrysophyceae	762	334
+seq3816	165	NA	0	131
+seq3834	164	Spumella-like flagellate JBC20	5	159
+seq3835	164	Eurotatoria	4	160
+seq3847	162	Tetrahymenidae	0	86
+seq3870	160	Prorodontida	0	160
+seq3882	158	Saprolegniaceae	0	111
+seq3887	158	Thaumatomastix	0	158
+seq3889	157	NA	0	123
+seq3902	156	NA	62	16
+seq3906	156	Eurotatoria	0	156
+seq3911	154	Dileptus sp. FG-2015	0	154
+seq3918	153	Spumella-like flagellate JBAF33	7	103
+seq3938	150	Paramonas	0	150
+seq3944	150	Chaetonotidae	0	62
+seq3947	149	Chytriomyces	0	126
+seq3957	149	Cryptomonas	56	18
+seq3962	149	Prorodontida	0	149
+seq3963	148	Conochilus coenobasis	3	145
+seq3967	148	Saprolegniaceae	0	78
+seq3976	147	NA	35	30
+seq3986	145	NA	0	145
+seq4003	144	Pleurostomatida	46	6
+seq4029	142	NA	0	142
+seq4044	140	Stentor roeselii	0	140
+seq4061	138	Cryptomonas	55	15
+seq4065	137	Stentor roeselii	0	137
+seq4088	135	Conochilus coenobasis	0	135
+seq409	17020	NA	1385	789
+seq4090	135	Cryptomonas	4	91
+seq4107	134	NA	0	103
+seq4110	134	NA	0	134
+seq4152	130	Euchlanis	0	97
+seq4169	129	Stephanoecidae	13	95
+seq418	16393	NA	1237	843
+seq4205	127	NA	0	127
+seq4214	125	Spirotrichea	0	125
+seq4216	125	Tetrahymena sp. Gorphan	12	113
+seq4231	124	NA	0	124
+seq4256	121	Euchlanis	0	93
+seq4269	121	Thaumatomastix	0	121
+seq4286	120	Spumella-like flagellate JBC20	0	120
+seq4322	116	Hartmannellidae	0	116
+seq4358	113	Stentor	18	89
+seq4360	112	Spirotrichea	0	112
+seq437	15660	NA	815	85
+seq4381	110	Tetrahymena	0	93
+seq4441	105	Blyttiomyces	0	105
+seq4443	105	Stephanoecidae	14	67
+seq4446	105	NA	0	80
+seq4468	104	NA	5	99
+seq4469	103	Cercozoa	0	103
+seq447	15003	NA	814	62
+seq4490	102	Oligohymenophorea	0	93
+seq4507	101	Cryptomonas	2	63
+seq4537	100	Vorticellidae	6	87
+seq4560	98	NA	4	94
+seq4561	98	Blyttiomyces	0	98
+seq4589	97	Chaetonotidae	0	34
+seq4593	97	Cryptomonadaceae	0	97
+seq4637	94	Cryptomonadaceae	0	94
+seq4639	93	Chrysophyceae	0	93
+seq4663	91	Tetrahymena	0	85
+seq4686	90	Oligohymenophorea	0	81
+seq4701	89	Hartmannellidae	0	89
+seq4721	88	Sessilida	10	30
+seq4737	87	Paraenchelys	7	80
+seq4738	87	Paraenchelys	5	82
+seq4761	86	Parathyridaria percutanea	0	86
+seq4764	86	Cercozoa	0	86
+seq4776	86	Spongillida	0	86
+seq4777	85	Encyonema	0	85
+seq4778	85	NA	0	85
+seq4798	84	Chrysophyceae	0	84
+seq4835	82	Lepidodermella	0	82
+seq4884	80	Parathyridaria percutanea	0	80
+seq4915	79	NA	0	79
+seq4916	79	Vampyrella	0	79
+seq4948	78	Viridiraptor invadens	0	75
+seq4953	78	Pythium	6	44
+seq5007	75	NA	0	75
+seq5038	75	NA	0	75
+seq5041	74	Sessilida	10	24
+seq5047	74	Pseudostaurosira madagascariensis	0	66
+seq5072	74	NA	42	8
+seq5104	72	Tetrahymena sp. Gorphan	6	66
+seq5123	71	Rhizophlyctis	0	71
+seq5125	71	Encyonema	7	64
+seq5143	70	Spirotrichea	7	58
+seq5144	70	Rhizophlyctis	0	70
+seq5169	69	NA	0	69
+seq5252	66	Phialina	9	48
+seq528	11380	NA	889	866
+seq5296	65	Vorticella sp. 1 PPS-2011	5	51
+seq5297	65	Vorticellidae	0	65
+seq5299	64	NA	0	64
+seq5300	64	Vampyrella	0	64
+seq5302	64	Viridiraptor invadens	0	64
+seq5330	63	Lepidodermella	0	63
+seq5386	62	Metopus setosus	0	62
+seq5414	61	Herpotrichiellaceae	13	48
+seq5415	60	Sphaeroeca	0	60
+seq5453	60	Stentor	8	52
+seq5494	58	Phialina	0	58
+seq5502	58	Rutilus rutilus	0	58
+seq5564	56	Spumella-like flagellate JBAF33	0	32
+seq5584	56	Pythium	6	24
+seq5591	55	Haptorida	0	55
+seq5594	55	Pseudostaurosira madagascariensis	0	49
+seq5611	54	NA	3	39
+seq5644	54	Spongillida	0	54
+seq5645	54	Sphaeroeca	0	54
+seq5646	53	NA	0	53
+seq5647	53	Sandona	0	33
+seq5675	53	NA	9	14
+seq5687	53	Vorticella sp. 1 PPS-2011	7	31
+seq5690	52	Paracercomonas	0	52
+seq5729	52	Metopus setosus	0	52
+seq5731	51	Paracercomonas	2	49
+seq5733	51	Aspidisca lynceus	0	51
+seq5734	51	NA	4	26
+seq5777	50	Spirotrichea	0	47
+seq5848	48	Sphaeroeca	0	48
+seq5940	47	Entophlyctis	0	47
+seq596	9466	NA	651	686
+seq5984	46	Paraphysomonas uniformis	0	46
+seq6019	45	Sessilida	15	11
+seq6024	45	Rhogostoma sp. 1966/2	8	30
+seq6031	44	NA	0	44
+seq6041	44	Rutilus rutilus	0	44
+seq6042	44	Aphelidium desmodesmi	0	44
+seq6085	44	Rhogostoma sp. 1966/2	11	26
+seq611	9141	NA	495	180
+seq6174	42	Herpotrichiellaceae	0	42
+seq62	202260	Rhizophydium patellarium	8543	4
+seq622	8695	NA	446	178
+seq6232	41	Fragilariophyceae	0	41
+seq6292	40	Rhizophydium	0	40
+seq6296	40	NA	0	40
+seq6302	39	NA	3	36
+seq6353	39	Paraphysomonas uniformis	0	39
+seq6405	38	Entophlyctis	0	38
+seq6407	37	Sphaeroeca	0	37
+seq6479	36	NA	0	36
+seq6546	35	Bacillariophyta	19	16
+seq6548	35	Rhogostoma	0	35
+seq6551	35	Aspidisca lynceus	0	35
+seq6556	35	Spumella-like flagellate JBAF33	0	20
+seq6563	35	Epistylidae	0	35
+seq6603	35	Sphaeroeca	0	35
+seq6606	35	Eurotatoria	0	35
+seq6614	34	Helicogloeaceae	0	34
+seq6638	34	NA	0	34
+seq6684	33	Helicogloeaceae	0	33
+seq6685	33	Sandona	0	18
+seq6700	33	Epistylidae	0	33
+seq6732	33	Sessilida	9	17
+seq6819	32	Cryptomonas	0	32
+seq6822	32	Rhizophydium	0	32
+seq6833	31	Eurotatoria	0	31
+seq6849	31	Chaetonotida	0	22
+seq6901	30	Agolohymena	0	30
+seq6902	30	Vorticella	0	30
+seq6911	30	NA	0	30
+seq6921	30	NA	9	13
+seq6930	30	Paramonas	0	30
+seq6931	30	Basidiomycota	0	30
+seq6974	30	Fragilariophyceae	0	30
+seq6978	29	Oxytrichidae	0	29
+seq6985	29	NA	0	25
+seq6989	29	Oxytrichidae	0	29
+seq6999	29	Chaetonotida	0	15
+seq7005	29	Paraphysomonas uniformis	0	29
+seq7061	28	Cryptomonas sp. NIES-3916	7	21
+seq7071	28	NA	0	28
+seq7089	28	Basidiomycota	0	28
+seq7140	28	Rhizophydium	0	28
+seq7158	27	Bacillariophyta	13	14
+seq7188	27	Paramonas	0	27
+seq7253	26	Cryptomonas sp. NIES-3916	6	20
+seq7284	26	Paraphysomonas uniformis	0	26
+seq7335	26	Adriamonas	6	20
+seq7344	25	Spathidium sp. 2 VBOEF-2011	0	25
+seq7347	25	Spirotrichea	0	25
+seq7389	25	Aphelidium desmodesmi	0	25
+seq7459	24	Agolohymena	0	24
+seq7460	24	Spirotrichea	0	24
+seq7560	24	Rhizophydium	0	24
+seq7586	23	Rhogostoma	0	23
+seq7587	23	NA	0	23
+seq7690	22	Haptorida	0	22
+seq7828	22	Cryptomonas	0	22
+seq7830	21	Oxytrichidae	0	21
+seq7831	21	Leptophrys	0	21
+seq7871	21	Eurotatoria	0	21
+seq7933	21	Rhizophlyctis	7	10
+seq7983	20	Spathidium sp. 2 VBOEF-2011	0	20
+seq8046	20	Fragilariophyceae	0	20
+seq8057	20	Cryptomonas	5	15
+seq806	5333	Paraphysomonas sp. 14 JMS-2012	295	216
+seq8120	20	Capsaspora	0	20
+seq8129	19	Vorticella	0	19
+seq8222	19	Oxytrichidae	5	14
+seq8284	19	Adriamonas	0	19
+seq8395	18	Cosmarium	4	10
+seq840	4981	Paraphysomonas sp. 14 JMS-2012	303	237
+seq8444	18	Chaetonotus bombardus	2	16
+seq8457	18	NA	0	18
+seq8495	17	Amoeboaphelidium	0	17
+seq8496	17	Leptophrys	0	17
+seq8527	17	NA	0	17
+seq870	4658	Spongillida	16	2358
+seq8838	16	Monhysteridae sp. NK-2011a	0	16
+seq8949	15	Cyclopidae	0	15
+seq8969	15	Vannella croatica	0	15
+seq905	4375	Spongillida	11	1770
+seq9069	15	Monhysteridae sp. NK-2011a	0	15
+seq9095	15	Gomphonemataceae	3	12
+seq9186	15	Rhizophlyctis	0	15
+seq9199	14	Oxytrichidae	0	14
+seq9200	14	Gomphonemataceae	0	14
+seq9217	14	Cyclopidae	0	14
+seq9221	14	Rhizophydium	0	10
+seq9325	14	Agolohymena	0	14
+seq9425	14	Capsaspora	0	14
+seq9456	13	Cryptomonas	0	13
+seq9457	13	Tetrahymena	0	13
+seq9458	13	Vannella croatica	0	13
+seq9471	13	Tetrahymena	0	13
+seq9520	13	Oxytrichidae	0	13
+seq9521	13	Cryptomonas	0	13
+seq9526	13	Cothurnia	10	3
+seq9656	13	Nanos	4	9
+seq9684	13	Chaetonotus bombardus	0	13
+seq9685	13	Lepidodermella minus	0	13
+seq9897	12	Fragilariophyceae	0	12
+seq9922	12	NA	0	12
+seq997	3593	NA	269	329
