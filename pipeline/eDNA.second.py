@@ -92,23 +92,3 @@ memory='4g',
 walltime='2:00:00') << """
 Rscript scripts/counts.lca.R
 """
-
-# Rarefy (ROBITools)
-gwf.target('Rarefy',
-inputs=["lca.taxa.count.tsv"],
-outputs=["Pore_size_table_for_rarefy.tsv","counts.lca.rarefy.tsv"],
-cores=1,
-memory='4g',
-walltime='2:00:00') << """
-Rscript scripts/rarefyROBI.R
-"""
-
-# Obtain summary table and heatmap (Bioconductor)
-gwf.target('Summary_table_and_heatmap',
-inputs=["counts.lca.rarefy.tsv"],
-outputs=["reads.lca.perc.phylum.tsv", "reads.lca.phylum.tsv"],
-cores=1,
-memory='4g',
-walltime='2:00:00') << """
-Rscript scripts/summaryTable.lca.R
-"""

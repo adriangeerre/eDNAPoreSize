@@ -1,14 +1,29 @@
-## Pore Size eDNA pipeline
+### Pore size eDNA
 
-#### Installation
+**About**
+
+This repository contains the environments, pipelines, scripts, notebooks and auxiliary files belonging to the publication about eDNA pore size on seawater danish samples.
+
+    *Filter pore size influences taxonomic composition of retained eDNA from seawater samples – evidence from shotgun sequencing*
+
+**Usage**
+
+The raw data can be analyzed, ona HPC cluster using Slurm, by:
+
+    - Installing the available environments (folder: envs) on conda/mamba
+    - Installing ROBITools and ROBITaxonomy inside the ROBITools environment (details below)
+    - Run the pipelines:
+        - eDNA.first.py: Data merging and splitting followed by Blastn mapping and filter.
+        - eDNA.second.py: LCA of filtered results, merging of results into unique tables per sample and downstream analysis. 
+    - Once the data is ready, the notebooks could be run to summarize results and produce the main and supplementary figures.
+
+The pipeline was splitted in two to improve the tracking of scheduled jobs (There are many thousands of Blastn jobs).
+
+**Installing ROBITools/Taxonomy**
 
 ```
-mamba create -n eDNA_mamba -c bioconda -c conda-forge -c r -c gwforg bbmap blast fastqc seqtk gwf=1.7.2 r-vegan r-tidyverse r-plyr r-reshape2 r-ggalt r-ggpubr r-ggrepel r-taxizedb bioconductor-complexheatmap bioconductor-edger
-```
-
-
-```
-conda activate eDNA_mamba
-R
-    install.packages("optparse")
+# Install in ROBITools Environment
+# devtools::install_gitlab("obitools/ROBITaxonomy", host = "https://git.metabarcoding.org/")
+# install.packages("igraph")
+# devtools::install_gitlab("obitools/ROBITools", host = "https://git.metabarcoding.org/")
 ```
