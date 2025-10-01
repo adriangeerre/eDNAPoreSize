@@ -5,7 +5,7 @@ library(tidyverse)
 setwd("~/Documents/Computing/eDNA/New_Analysis/")
 
 # List folders
-files <- list.files("domains", recursive = T, full.names = T, pattern = "domains.tsv")
+files <- list.files("read_counts", recursive = T, full.names = T)
 
 # Read and add metadata
 dfs <- lapply(files, function(x) read.table(x, header = T) %>% mutate(similarity = basename(dirname(x)), sample = str_replace(basename(x), "\\.domains\\.tsv", "")))

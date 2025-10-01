@@ -3,10 +3,9 @@ import os
 import glob
 import argparse
 import pandas as pd
-from collections import Counter
 
 ## Parser
-parser = argparse.ArgumentParser(prog='CountUniqueTaxids.py', description='Python script to count the unique taxids per eDNA sample.')
+parser = argparse.ArgumentParser(prog='MatchReadsSuperkingdom.py', description='Python script to count the unique taxids per eDNA sample.')
 parser.add_argument('-i', '--infolder', dest='infolder', action='store', help='Filtered blast results folder.', required=True)
 parser.add_argument('-c', '--categories', dest='categories', action='store', help='Categories (.dmp) file from NCBI (taxcat.tar.gz).', required = True)
 parser.add_argument('-o', '--outfolder', dest='outfolder', action='store', help='Output folder to save results.', required=True)
