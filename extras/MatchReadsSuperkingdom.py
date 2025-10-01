@@ -8,6 +8,7 @@ from collections import Counter
 ## Parser
 parser = argparse.ArgumentParser(prog='CountUniqueTaxids.py', description='Python script to count the unique taxids per eDNA sample.')
 parser.add_argument('-i', '--infolder', dest='infolder', action='store', help='Filtered blast results folder.', required=True)
+parser.add_argument('-c', '--categories', dest='categories', action='store', help='Categories (.dmp) file from NCBI (taxcat.tar.gz).', required = True)
 parser.add_argument('-o', '--outfolder', dest='outfolder', action='store', help='Output folder to save results.', required=True)
 
 ## Functions
@@ -27,33 +28,29 @@ def load_file(infile):
 	return df
 
 # Extract taxids
-def load_extract_taxids(infile):
+def load_extract_reads(infile, categories):
 	# Load file
 	df = load_file(infile)
-	# Extract column
-	taxids = df[17].to_list()
-	# Return
-	return taxids
-
-# Counter to dataframe
-def counter_to_pandas(d):
-	# To pandas
-	df = pd.DataFrame(d.items(), columns=['Taxid', 'Count'])
-	# Order by count
-	df = df.sort_values(by='Count', ascending=False).reset_index(drop=True)
+	# Reduce hits to reads
+	df = df[[0,17]].drop_duplicates().rename(columns = {0: 'id',17: 'taxid'})
+	# Add categories
+	df = df.merge(categories, on="taxid", how="left").drop(['sp_taxid','taxid'], axis=1).fillna("M")
+	# Filter duplicates categories per read
+	df = df[['id','domain']].drop_duplicates()
+	# Generate matrix
+	df['value'] = 1
+	df = df.pivot_table(columns='domain', index='id', values='value', fill_value=0)
+	# Add missing columns
+	cat_cols = sorted(list(categories.domain.unique())) + ["M"]
+	for col in cat_cols:
+		if col not in list(df.columns):
+			df[col] = 0
+	# Sort columns
+	df = df.loc[:,cat_cols]
+	# Reset index
+	df = df.reset_index()
 	# Return
 	return df
-
-# Count taxids
-def count_taxids(lsts):
-	# Flatten list of lists
-	flat = [j for i in lsts for j in i]
-	# Count taxids
-	counts = Counter(flat)
-	# Counter to dataframe
-	counts = counter_to_pandas(counts)
-	# Return
-	return counts
 
 # Save results
 def save_results(df, outfile):
@@ -64,10 +61,14 @@ if __name__ == "__main__":
 	# Define arguments
 	args = parser.parse_args()
 	infolder = args.infolder
+	categories = args.categories
 	outfolder = args.outfolder
 
 	# List samples
 	samples = list_files(infolder)
+
+	# Read categories
+	categories = pd.read_table(categories, header = None, names = ['domain','sp_taxid','taxid'])
 
 	# Loop samples
 	for sample in samples:
@@ -80,11 +81,11 @@ if __name__ == "__main__":
 		# Loop files
 		for tsv in tsvs:
 			# Extract taxids
-			taxids = load_extract_taxids(tsv)
+			cats = load_extract_reads(tsv, categories)
 			# Append 
-			res.append(taxids)
-			# Count taxids
-			counts = count_taxids(res)
-			# Save results
-			if not os.path.exists(outfolder): os.makedirs(outfolder)
-			save_results(counts, f"{outfolder}/{name}.taxid_counts.tsv")
+			res.append(cats)
+		# Merge res
+		matrix = pd.concat(res)
+		# Save results
+		if not os.path.exists(outfolder): os.makedirs(outfolder)
+		save_results(matrix, f"{outfolder}/{name}.reads_cats.tsv")

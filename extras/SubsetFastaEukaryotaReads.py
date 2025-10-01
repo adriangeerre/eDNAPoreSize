@@ -84,7 +84,6 @@ if __name__ == '__main__':
 	# Parse fasta
 	res = parallel_filter(fasta, reads, workers=4, chunk_size=1000000)
 
-
 	# Save results
 	outfile = f"{outfolder}/{name}.other_euka.fasta"
 	SeqIO.write(res, outfile, "fasta")
