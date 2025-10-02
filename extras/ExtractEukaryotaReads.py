@@ -5,11 +5,10 @@ import argparse
 import pandas as pd
 
 ## Parser
-parser = argparse.ArgumentParser(prog='ExtractEukaryotaReads.py', description='Python script to count the unique taxids per eDNA sample.')
+parser = argparse.ArgumentParser(prog='ExtractEukaryotaReads.py', description='Python script to extract eukaryota reads per sample.')
 parser.add_argument('-i', '--infolder', dest='infolder', action='store', help='Filtered blast results folder.', required=True)
 parser.add_argument('-t', '--taxids', dest='taxids', action='store', help='Summary file containing taxids and counts.', required = True)
 parser.add_argument('-r', '--r18S', dest='r18S', action='store', help='NCBI 18S accessions.', required = True)
-#parser.add_argument('-f', '--fastq', dest='fastq', action='store', help='Fastq file containing shotgun reads.', required = True)
 parser.add_argument('-o', '--outfolder', dest='outfolder', action='store', help='Output folder to save results.', required=True)
 
 ## Functions

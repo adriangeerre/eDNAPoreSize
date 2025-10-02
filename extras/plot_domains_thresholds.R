@@ -5,24 +5,23 @@ library(tidyverse)
 setwd("~/Documents/Computing/eDNA/New_Analysis/")
 
 # List folders
-files <- list.files("read_counts", recursive = T, full.names = T)
+files <- list.files("09-taxid_thresholds/read_counts", recursive = T, full.names = T)
 
 # Read and add metadata
-dfs <- lapply(files, function(x) read.table(x, header = T) %>% mutate(similarity = basename(dirname(x)), sample = str_replace(basename(x), "\\.domains\\.tsv", "")))
+dfs <- lapply(files, function(x) read.table(x, header = T))
 
 # Reduce
 df <- Reduce(function(...) rbind(...), dfs)
 
 # Rename domains
 df <- df %>%
-  mutate(label = recode(domain,
+  mutate(label = recode(superkingdom,
   "A" = "Archaea",
   "B" = "Bacteria",
   "E" = "Eukaryota",
   "V" = "Viruses",
-  "U" = "Unclassified",
-  "O" = "Other",
-  "M" = "Missing")) %>%
+  "M" = "Ambiguous",
+  "U" = "Unknown")) %>%
   mutate(sample = recode(sample, 
   "GP_1" = "EN0.2A", "GP_2" = "EN0.2B", "GP_3" = "EN0.2C",
   "A0_2" = "OP0.2A", "B0_2" = "OP0.2B", "C0_2" = "OP0.2C",
@@ -31,21 +30,37 @@ df <- df %>%
   "A8_0" = "OP8.0A", "B8_0" = "OP8.0B", "C8_0" = "OP8.0C"))
 
 # Add chosen threshold
-df <- df %>% mutate(chosen = ifelse(similarity == 90, "Y", "N"))
+df <- df %>% mutate(chosen = ifelse(threshold == 90, "Y", "N"))
 
 # Plot
-df$similarity <- factor(df$similarity, levels = c("70","75","80","85","90","95","99","100"))
-df$label <- factor(df$label, levels = c("Archaea", "Viruses", "Bacteria", "Eukaryota", "Other", "Unclassified", "Missing"))
-p <- df %>% filter(domain %in% c("A","V","B","E")) %>% 
-  ggplot() + geom_col(aes(x=similarity, y=Count, fill=label, color=chosen)) +
+df$threshold <- factor(df$threshold, levels = c("70","75","80","85","90","95","99","100"))
+df$label <- factor(df$label, levels = c("Unknown", "Ambiguous", "Archaea", "Viruses", "Bacteria", "Eukaryota"))
+
+p <- df %>% 
+  ggplot() + geom_col(aes(x=threshold, y=read_counts, fill=label, color=chosen)) +
   facet_wrap(sample~., nrow = 5, ncol = 3, scales = "free_y") +
-  scale_fill_manual(values = c("coral3","darkolivegreen3","darkcyan","orange3")) +
+  scale_fill_manual(values = c("gray25","gray50", "coral3","darkolivegreen3","darkcyan","orange3")) +
   scale_color_manual(values = c("gray35","black")) +
+  scale_y_continuous(labels = scales::label_scientific()) +
   labs(fill = "Superkingdom", x = "Similarity threshold", y = "No. of reads") +
   guides(color = F) +
   theme_minimal(base_size = 14)
 
-pdf("similarity_thresholds.pdf", width = 10, height = 6)
+pdf("similarity_thresholds.all.pdf", width = 10, height = 6)
 p
 dev.off()
   
+p <- df %>% 
+  filter(superkingdom %in% c("A","V","B","E")) %>% 
+  ggplot() + geom_col(aes(x=threshold, y=read_counts, fill=label, color=chosen)) +
+  facet_wrap(sample~., nrow = 5, ncol = 3, scales = "free_y") +
+  scale_fill_manual(values = c("coral3","darkolivegreen3","darkcyan","orange3")) +
+  scale_color_manual(values = c("gray35","black")) +
+  scale_y_continuous(labels = scales::label_scientific()) +
+  labs(fill = "Superkingdom", x = "Similarity threshold", y = "No. of reads") +
+  guides(color = F) +
+  theme_minimal(base_size = 14)
+
+pdf("similarity_thresholds.spks.pdf", width = 10, height = 6)
+p
+dev.off()
