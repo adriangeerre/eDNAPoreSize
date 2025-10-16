@@ -11,7 +11,6 @@ parser.add_argument('-b', '--blast', dest='blast', action='store', help='18S rib
 parser.add_argument('-p', '--pident', dest='pident', action='store', help='Percentage of identity to filter blast results.', required=True, type=int)
 parser.add_argument('-o', '--outfolder', dest='outfolder', action='store', help='Output folder to save results.', required=True)
 
-
 ## Functions
 
 # List files

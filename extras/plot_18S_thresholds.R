@@ -43,7 +43,7 @@ df <- df %>% mutate(chosen = ifelse(threshold == 90, "Y", "N"))
 
 # Count total 18S reads
 eu18S <- df %>% filter(variable != "Non-18S") %>% group_by(sample, threshold) %>% summarise(r18S = sum(value))
-pos18S <- df %>% group_by(sample, threshold) %>% summarise(total = sum(value)) %>% ungroup() %>% group_by(sample, threshold) %>% summarise(position = max(total)*0.35)
+pos18S <- df %>% group_by(sample, threshold) %>% summarise(total = sum(value)) %>% ungroup() %>% group_by(sample) %>% summarise(position = max(total)*0.35)
 eu18S <- merge(eu18S, pos18S, by="sample")
 
 # Plot
@@ -52,7 +52,7 @@ df$variable <- factor(df$variable, levels = c("Non-18S", "Blast", "Accession"))
 
 p <- df %>% 
   ggplot() + geom_col(aes(x=threshold, y=value, fill=variable, color=chosen, group=threshold)) +
-  geom_text(data = eu18S, aes(x=threshold, y=r18S+10000, label = paste("n=",r18S,sep="")), color="darkred", size=2, angle=90, hjust = 0) +
+  geom_text(data = eu18S, aes(x=threshold, y=r18S+7500, label = paste("n=", format(r18S, big.mark=","), sep="")), color="black", size=2, angle=90, hjust = 0) +
   facet_wrap(sample~., nrow = 5, ncol = 3, scales = "free_y") +
   scale_fill_manual(values = c("gray90", "darkgoldenrod2","indianred2")) +
   scale_color_manual(values = c("gray35","black")) +
