@@ -92,6 +92,12 @@ if __name__ == "__main__":
 
 	# Extract taxids
 	taxids = extract_taxids(tax_file, s, k, p, c, o, f, g)
+	print(f"Recovered {len(set(taxids))} distinct taxids")
+
+	# Avoid execution if no taxids are found
+	if len(taxids) == 0:
+		print("WARNING: No taxids were recovered!")
+		quit
 
 	# Define samples
 	samples = list_files(infolder)
