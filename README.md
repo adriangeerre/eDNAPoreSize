@@ -20,6 +20,7 @@ The raw data can be analyzed, on a HPC cluster using Slurm, by:
         - eDNA: eDNA.first.py
         - ROBITools and TaxizeDB: eDNA.second.py
         - Jup-eDNA: jupyter notebooks
+        - Mothur: exploratory analyses
 
 The pipeline was splitted in two to improve the tracking of scheduled jobs (There are many thousands of Blastn jobs).
 
